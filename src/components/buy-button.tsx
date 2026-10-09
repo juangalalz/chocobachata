@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { offer } from "@/lib/offer";
 import { sendVisit, visitContext } from "@/lib/visit-client";
 
@@ -9,15 +11,24 @@ type BuyButtonProps = {
 };
 
 export function BuyButton({ children, className }: BuyButtonProps) {
+  const [loading, setLoading] = useState(false);
+
   return (
     <a
       href={offer.checkoutUrl || "/pago"}
+      aria-busy={loading}
+      aria-disabled={loading}
       onClick={(event) => {
-        if (!offer.checkoutUrl) {
+        if (!offer.checkoutUrl || loading) {
+          if (loading) {
+            event.preventDefault();
+          }
           return;
         }
 
         event.preventDefault();
+        setLoading(true);
+
         const context = visitContext();
         const eventId = crypto.randomUUID();
         const url = new URL(offer.checkoutUrl);
@@ -41,11 +52,23 @@ export function BuyButton({ children, className }: BuyButtonProps) {
           url.searchParams.set("checkout[custom][fbp]", context.fbp);
         }
 
-        window.location.href = url.toString();
+        const destination = url.toString();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.location.href = destination;
+          });
+        });
       }}
-      className={className}
+      className={`${className ?? ""} ${loading ? "pointer-events-none" : ""}`}
     >
-      {children}
+      {loading ? (
+        <span className="inline-flex items-center gap-2">
+          <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          Abriendo el pago…
+        </span>
+      ) : (
+        children
+      )}
     </a>
   );
 }
