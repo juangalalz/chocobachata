@@ -17,9 +17,9 @@ export default function GraciasPage() {
         Te damos la bienvenida al curso
       </h1>
       <p className="mt-4 leading-7 text-muted">
-        Te hemos enviado un correo con los pasos para crear tu contraseña y
-        empezar con el nivel 1. Si no lo ves en unos minutos, revisa la carpeta
-        de spam o promociones.
+        Te llegan dos correos: uno con la bienvenida al curso y otro para crear
+        tu contraseña. Abre el segundo y crea la clave. Si no los ves en unos
+        minutos, revisa spam o promociones.
       </p>
       <p className="mt-4 leading-7 text-muted">
         ¿Necesitas ayuda? Escríbenos a{" "}

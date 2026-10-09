@@ -1,13 +1,18 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
+
 type MetaInput = {
-  eventName: "PageView" | "Lead" | "InitiateCheckout";
+  eventName: "PageView" | "Lead" | "InitiateCheckout" | "Purchase";
   eventId: string;
   sourceUrl?: string;
   clientIp?: string;
   userAgent?: string;
   fbc?: string;
   fbp?: string;
+  email?: string;
+  value?: number;
+  currency?: string;
 };
 
 export async function sendMetaEvent(input: MetaInput): Promise<void> {
@@ -18,7 +23,7 @@ export async function sendMetaEvent(input: MetaInput): Promise<void> {
     return;
   }
 
-  const userData: Record<string, string> = {};
+  const userData: Record<string, string | string[]> = {};
 
   if (input.clientIp) {
     userData.client_ip_address = input.clientIp;
@@ -36,6 +41,12 @@ export async function sendMetaEvent(input: MetaInput): Promise<void> {
     userData.fbp = input.fbp;
   }
 
+  if (input.email) {
+    userData.em = [
+      createHash("sha256").update(input.email.trim().toLowerCase()).digest("hex"),
+    ];
+  }
+
   if (Object.keys(userData).length === 0) {
     return;
   }
@@ -50,6 +61,9 @@ export async function sendMetaEvent(input: MetaInput): Promise<void> {
         action_source: "website",
         event_source_url: input.sourceUrl,
         user_data: userData,
+        ...(input.value != null && input.currency
+          ? { custom_data: { value: input.value, currency: input.currency } }
+          : {}),
       },
     ],
   };
