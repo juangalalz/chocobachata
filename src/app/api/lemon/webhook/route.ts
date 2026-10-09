@@ -34,17 +34,22 @@ function signatureMatches(raw: string, signature: string | null): boolean {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
+// Wix hace varias llamadas seguidas; damos margen antes de que Vercel corte.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const raw = await request.text();
-  const host = request.headers.get("host") ?? "";
-  const localTest =
-    host.startsWith("127.0.0.1") && request.headers.get("x-local-test") === "1";
 
-  if (!signatureMatches(raw, request.headers.get("x-signature")) && !localTest) {
+  if (!signatureMatches(raw, request.headers.get("x-signature"))) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
-  const payload = JSON.parse(raw) as LemonPayload;
+  let payload: LemonPayload;
+  try {
+    payload = JSON.parse(raw) as LemonPayload;
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
 
   if (payload.meta?.event_name !== "order_created") {
     return NextResponse.json({ ok: true, skipped: true });
@@ -67,7 +72,7 @@ export async function POST(request: Request) {
     fbclid: custom.fbclid,
     fbc: custom.fbc,
     fbp: custom.fbp,
-    sourceUrl: "https://www.chocobachata.com/",
+    sourceUrl: `${new URL(request.url).origin}/`,
   });
 
   return NextResponse.json({ ok: true, memberId });

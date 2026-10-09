@@ -15,12 +15,14 @@ type MetaInput = {
   currency?: string;
 };
 
-export async function sendMetaEvent(input: MetaInput): Promise<void> {
+export type MetaStatus = "sent" | "skipped" | "failed";
+
+export async function sendMetaEvent(input: MetaInput): Promise<MetaStatus> {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim();
   const token = process.env.META_CAPI_TOKEN?.trim();
 
   if (!pixelId || !token) {
-    return;
+    return "skipped";
   }
 
   const userData: Record<string, string | string[]> = {};
@@ -48,7 +50,7 @@ export async function sendMetaEvent(input: MetaInput): Promise<void> {
   }
 
   if (Object.keys(userData).length === 0) {
-    return;
+    return "skipped";
   }
 
   const testCode = process.env.META_TEST_EVENT_CODE?.trim();
@@ -72,17 +74,25 @@ export async function sendMetaEvent(input: MetaInput): Promise<void> {
     body.test_event_code = testCode;
   }
 
-  const response = await fetch(
-    `https://graph.facebook.com/v21.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
 
-  if (!response.ok) {
-    console.error("[meta]", input.eventName, response.status);
+    if (!response.ok) {
+      console.error("[meta]", input.eventName, response.status);
+      return "failed";
+    }
+
+    return "sent";
+  } catch (error) {
+    console.error("[meta]", input.eventName, error);
+    return "failed";
   }
 }
 
