@@ -42,10 +42,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/hero.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Choco enseñando bachata",
+        url: "/og.jpg",
+        width: 1024,
+        height: 571,
+        alt: "Aprende a bailar bachata desde cero con Choco",
       },
     ],
   },
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/hero.jpg"],
+    images: ["/og.jpg"],
   },
   robots: {
     index: true,
