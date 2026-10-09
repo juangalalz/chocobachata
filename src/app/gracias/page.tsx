@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { offer } from "@/lib/offer";
 
 export const metadata: Metadata = {
-  title: "Gracias por tu compra · Choco Bachata",
+  title: "Gracias por tu compra",
   robots: { index: false, follow: false },
 };
 

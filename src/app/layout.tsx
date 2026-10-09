@@ -16,19 +16,48 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
-const title = "Curso online de bachata desde cero | Choco Bachata";
+const siteUrl = "https://curso.chocobachata.com";
+const title = "Aprende bachata desde cero | Choco Bachata";
 const description =
-  "Aprende a bailar bachata desde casa con Choco: tres niveles, de tus primeros pasos a bailar en social con soltura. Pago único de 29,99 €, IVA incluido.";
+  "Tres niveles para bailar bachata desde casa, a tu ritmo. Paso básico, ritmo y combinaciones. Pago único de 29,99 €, IVA incluido, sin caducidad.";
 
 export const metadata: Metadata = {
-  title,
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: title,
+    template: "%s | Choco Bachata",
+  },
   description,
+  applicationName: "Choco Bachata",
+  authors: [{ name: "Choco Bachata", url: "https://www.chocobachata.com" }],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title,
     description,
+    url: siteUrl,
     siteName: "Choco Bachata",
     locale: "es_ES",
     type: "website",
+    images: [
+      {
+        url: "/hero.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Choco enseñando bachata",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/hero.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

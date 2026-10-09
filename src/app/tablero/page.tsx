@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { listPageEvents, type PageEventRow } from "@/lib/visits";
 
 export const metadata: Metadata = {
-  title: "Visitas · Choco Bachata",
+  title: "Visitas",
   robots: { index: false, follow: false },
 };
 
