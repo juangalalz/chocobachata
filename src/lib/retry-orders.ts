@@ -9,6 +9,7 @@ import {
   saveOrder,
   supabaseHeaders,
 } from "@/lib/fulfill-purchase";
+import { announceSale } from "@/lib/sale-notice";
 
 // Cada 10 minutos (pg_cron, ver supabase/retries.sql): 12 intentos son unas 2 horas.
 export const MAX_ATTEMPTS = 12;
@@ -101,7 +102,7 @@ export async function listStuckOrders(now = new Date()): Promise<StuckOrder[]> {
 
 export async function retryOrder(order: StuckOrder): Promise<"fixed" | "failed"> {
   const attempt = order.attempts + 1;
-  const refund = order.refund_requested_at !== null && order.wix_status !== "refunded";
+  const refund = order.refund_requested_at != null && order.wix_status !== "refunded";
   await saveOrder(order.lemon_order_id, { attempts: attempt });
 
   try {
@@ -125,6 +126,15 @@ export async function retryOrder(order: StuckOrder): Promise<"fixed" | "failed">
     }
 
     await markResolved(order.lemon_order_id, refund ? "reembolso" : "acceso");
+    if (!refund) {
+      // Si la venta no se avisó porque el acceso falló, se avisa ahora (solo una vez).
+      await announceSale({
+        orderId: order.lemon_order_id,
+        sessionId: order.session_id,
+        amountCents: order.amount_cents,
+        currency: order.currency,
+      });
+    }
     return "fixed";
   } catch (error) {
     await saveOrder(order.lemon_order_id, { last_error: String(error).slice(0, 500) });

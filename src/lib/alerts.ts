@@ -1,12 +1,11 @@
 import "server-only";
 
-// Avisos al móvil por un bot de Telegram. Sin TELEGRAM_BOT_TOKEN y
-// TELEGRAM_CHAT_ID solo queda el log de Vercel.
-export async function notify(text: string): Promise<void> {
+// Avisos al móvil por un bot de Telegram. Los errores van solo a TELEGRAM_CHAT_ID;
+// las ventas, a todos los de TELEGRAM_SALES_CHAT_IDS (separados por comas).
+// Sin token ni chats solo queda el log de Vercel.
+async function send(chatId: string, text: string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
-
-  if (!token || !chatId) {
+  if (!token) {
     console.error("[aviso]", text);
     return;
   }
@@ -19,9 +18,33 @@ export async function notify(text: string): Promise<void> {
     });
 
     if (!response.ok) {
-      console.error("[aviso] Telegram respondió", response.status, text);
+      console.error("[aviso] Telegram respondió", response.status, chatId, text);
     }
   } catch (error) {
     console.error("[aviso] No se pudo avisar por Telegram", error, text);
   }
+}
+
+export async function notify(text: string): Promise<void> {
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
+  if (!chatId) {
+    console.error("[aviso]", text);
+    return;
+  }
+
+  await send(chatId, text);
+}
+
+export async function notifySale(text: string): Promise<void> {
+  const chatIds = (process.env.TELEGRAM_SALES_CHAT_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (chatIds.length === 0) {
+    console.log("[venta]", text);
+    return;
+  }
+
+  await Promise.all(chatIds.map((chatId) => send(chatId, text)));
 }

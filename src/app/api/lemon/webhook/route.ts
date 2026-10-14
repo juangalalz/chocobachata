@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { fulfillPaidOrder, revokeRefundedOrder } from "@/lib/fulfill-purchase";
 import { markResolved, reportFailure } from "@/lib/retry-orders";
+import { announceSale } from "@/lib/sale-notice";
 import { findSessionTracking } from "@/lib/visits";
 
 type LemonPayload = {
@@ -111,5 +112,11 @@ export async function POST(request: Request) {
   }
 
   await markResolved(payload.data.id, "acceso");
+  await announceSale({
+    orderId: payload.data.id,
+    sessionId,
+    amountCents: attributes.total,
+    currency: attributes.currency,
+  });
   return NextResponse.json({ ok: true, memberId });
 }

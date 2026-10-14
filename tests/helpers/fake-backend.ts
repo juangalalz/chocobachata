@@ -26,6 +26,7 @@ export function setTestEnv() {
     LEMON_WEBHOOK_SECRET: "lemon-secret",
     TELEGRAM_BOT_TOKEN: "bot",
     TELEGRAM_CHAT_ID: "chat",
+    TELEGRAM_SALES_CHAT_IDS: "chat, hermana",
     CRON_SECRET: "cron-secret",
   });
   delete process.env.META_TEST_EVENT_CODE;
@@ -42,6 +43,7 @@ function filterRows(rows: Row[], params: URLSearchParams): Row[] {
       const actual = row[key] == null ? "" : String(row[key]);
       if (op === "eq" && actual !== expected) return false;
       if (op === "neq" && actual === expected) return false;
+      if (op === "is" && expected === "null" && row[key] != null) return false;
     }
     return true;
   });
@@ -53,7 +55,9 @@ export function createBackend() {
   const members = new Map<string, string>(); // email -> id
   const participants: Participant[] = [];
   const calls: { method: string; url: string; body?: unknown }[] = [];
+  // Avisos de error (solo al chat "chat") y mensajes de venta (a cada chat de ventas).
   const telegram: string[] = [];
+  const sales: { chatId: string; text: string }[] = [];
   const metaEvents: Row[] = [];
   // Ruta (subcadena) -> código HTTP con el que falla.
   const failures = new Map<string, number>();
@@ -83,6 +87,11 @@ export function createBackend() {
           const id = String(body.lemon_order_id);
           orders.set(id, { attempts: 0, ...orders.get(id), ...body });
           return new Response(null, { status: 201 });
+        }
+        if (method === "PATCH") {
+          const matched = filterRows([...orders.values()], url.searchParams);
+          for (const row of matched) Object.assign(row, body);
+          return json(matched);
         }
         return json(filterRows([...orders.values()], url.searchParams));
       }
@@ -142,7 +151,11 @@ export function createBackend() {
     }
 
     if (url.hostname === "api.telegram.org") {
-      telegram.push(body.text);
+      if (body.text.startsWith("💃")) {
+        sales.push({ chatId: String(body.chat_id), text: body.text });
+      } else {
+        telegram.push(body.text);
+      }
       return json({ ok: true });
     }
 
@@ -159,6 +172,7 @@ export function createBackend() {
     participants,
     calls,
     telegram,
+    sales,
     metaEvents,
     failures,
     callsTo: (path: string) => calls.filter((call) => call.url.includes(path)),

@@ -103,6 +103,55 @@ export async function findSessionTracking(
   };
 }
 
+export type SessionJourney = {
+  ad?: string;
+  source?: string;
+  device?: string;
+  cta?: string;
+  minutes?: number;
+};
+
+// De dónde vino quien compró: anuncio, origen y dispositivo de la primera visita,
+// y el último botón de Comprar que tocó.
+export async function findSessionJourney(sessionId: string): Promise<SessionJourney> {
+  const url = restUrl(
+    `page_events?session_id=eq.${encodeURIComponent(sessionId)}` +
+      "&select=name,utm_content,source,device,cta,created_at&order=created_at.asc&limit=200",
+  );
+
+  if (!url) {
+    return {};
+  }
+
+  const response = await fetch(url, { headers: headers(), cache: "no-store" });
+  if (!response.ok) {
+    console.error("[visitas] No se leyó la sesión", response.status);
+    return {};
+  }
+
+  const rows = (await response.json()) as Pick<
+    PageEventRow,
+    "name" | "utm_content" | "source" | "device" | "cta" | "created_at"
+  >[];
+  if (rows.length === 0) {
+    return {};
+  }
+
+  const first = rows[0];
+  const click = rows.filter((row) => row.name === "cta_click").at(-1);
+  const minutes = click
+    ? Math.round((Date.parse(click.created_at) - Date.parse(first.created_at)) / 60000)
+    : undefined;
+
+  return {
+    ad: rows.find((row) => row.utm_content)?.utm_content ?? undefined,
+    source: first.source ?? undefined,
+    device: first.device ?? undefined,
+    cta: click?.cta ?? undefined,
+    minutes: Number.isFinite(minutes) ? minutes : undefined,
+  };
+}
+
 export type FunnelRow = {
   grouping_key: "ad" | "source" | "device";
   grouping_value: string;
