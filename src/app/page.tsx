@@ -285,7 +285,7 @@ export default function HomePage() {
                   label="Choco presenta el curso"
                 />
                 <div id="comprar-video" className="mt-4">
-                  <BuyButton className={buttonClass.replace("sm:w-auto", "")}>
+                  <BuyButton cta="video" className={buttonClass.replace("sm:w-auto", "")}>
                     Comprar ahora · {offer.price} {offer.currency}
                   </BuyButton>
                 </div>
@@ -372,7 +372,9 @@ export default function HomePage() {
                 IVA incluido · Lo compras y es tuyo, sin caducidad.
               </p>
             </div>
-            <BuyButton className={buttonClass}>Comprar ahora</BuyButton>
+            <BuyButton cta="final" className={buttonClass}>
+              Comprar ahora
+            </BuyButton>
           </div>
         </section>
       </main>

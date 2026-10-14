@@ -14,6 +14,9 @@ export type PageEventRow = {
   event_id: string | null;
   client_ip: string | null;
   user_agent: string | null;
+  cta: string | null;
+  source: string | null;
+  device: string | null;
   created_at: string;
 };
 
@@ -100,20 +103,70 @@ export async function findSessionTracking(
   };
 }
 
-export async function listPageEvents(): Promise<PageEventRow[]> {
-  const url = restUrl(
-    "page_events?select=*&order=created_at.desc&limit=2000",
-  );
+export type FunnelRow = {
+  grouping_key: "ad" | "source" | "device";
+  grouping_value: string;
+  visits: number;
+  bounced: number;
+  read_half: number;
+  clicked: number;
+  sales: number;
+};
 
+export type DashboardStats = {
+  totals: {
+    visits: number;
+    bounced: number;
+    read_half: number;
+    clicked: number;
+    sales: number;
+    refunds: number;
+    all_orders: number;
+  };
+  groups: FunnelRow[];
+  ctas: { cta: string; clicks: number; sales: number }[];
+  video: {
+    played: number;
+    p25: number;
+    p50: number;
+    p75: number;
+    p100: number;
+    played_sales: number;
+    played_clicked: number;
+  };
+  recent: {
+    started: string;
+    ad: string | null;
+    source: string | null;
+    device: string | null;
+    max_depth: number;
+    seconds: number | null;
+    clicked: boolean;
+    bought: boolean;
+    video_depth: number;
+  }[];
+};
+
+// El cálculo lo hace la función dashboard_stats de supabase/dashboard.sql.
+export async function dashboardStats(hours: number): Promise<DashboardStats | null> {
+  const url = restUrl("rpc/dashboard_stats");
   if (!url) {
-    return [];
+    return null;
   }
 
-  const response = await fetch(url, { headers: headers(), cache: "no-store" });
+  const response = await fetch(url, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      since: new Date(Date.now() - hours * 3600 * 1000).toISOString(),
+    }),
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    return [];
+    console.error("[tablero]", response.status, (await response.text()).slice(0, 300));
+    return null;
   }
 
-  return (await response.json()) as PageEventRow[];
+  return (await response.json()) as DashboardStats;
 }

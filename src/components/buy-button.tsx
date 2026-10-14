@@ -3,14 +3,16 @@
 import { useState } from "react";
 
 import { offer } from "@/lib/offer";
-import { sendVisit, visitContext } from "@/lib/visit-client";
+import { isInternal, sendVisit, visitContext } from "@/lib/visit-client";
 
 type BuyButtonProps = {
   children: React.ReactNode;
+  // Dónde está el botón, para ver en el tablero cuál usa la gente.
+  cta: "oferta" | "video" | "barra" | "final";
   className?: string;
 };
 
-export function BuyButton({ children, className }: BuyButtonProps) {
+export function BuyButton({ children, cta, className }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
 
   return (
@@ -33,13 +35,15 @@ export function BuyButton({ children, className }: BuyButtonProps) {
         const eventId = crypto.randomUUID();
         const url = new URL(offer.checkoutUrl);
 
-        sendVisit("cta_click", { eventId });
-        window.fbq?.(
-          "track",
-          "InitiateCheckout",
-          {},
-          { eventID: eventId },
-        );
+        sendVisit("cta_click", { eventId, cta });
+        if (!isInternal()) {
+          window.fbq?.(
+            "track",
+            "InitiateCheckout",
+            {},
+            { eventID: eventId },
+          );
+        }
 
         // Lemon solo necesita la sesión: el webhook recupera de Supabase los datos de Meta.
         url.searchParams.set("checkout[custom][session_id]", context.sessionId);

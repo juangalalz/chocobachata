@@ -82,6 +82,7 @@ export async function POST(request: Request) {
 
   const memberId = await fulfillPaidOrder({
     orderId: payload.data.id,
+    sessionId,
     email,
     fullName: attributes.user_name,
     amountCents: attributes.total,

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { sendVisit } from "@/lib/visit-client";
+import { isInternal, sendVisit } from "@/lib/visit-client";
 
 const depths = [25, 50, 75, 100];
 let tracking = false;
@@ -19,7 +19,9 @@ export function VisitTracker() {
     const seen = new Set<number>();
 
     sendVisit("page_view", { eventId });
-    window.fbq?.("track", "PageView", {}, { eventID: eventId });
+    if (!isInternal()) {
+      window.fbq?.("track", "PageView", {}, { eventID: eventId });
+    }
 
     function onScroll() {
       const height = document.documentElement.scrollHeight - window.innerHeight;

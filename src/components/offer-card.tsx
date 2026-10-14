@@ -26,7 +26,7 @@ export function OfferCard() {
         <p className="mt-2 text-center text-xs font-semibold tracking-[0.18em] text-gold uppercase">
           Pago único · IVA incluido
         </p>
-        <BuyButton className={`${buttonClass} mt-4`}>Comprar ahora</BuyButton>
+        <BuyButton cta="oferta" className={`${buttonClass} mt-4`}>Comprar ahora</BuyButton>
         <p className="mt-4 text-center text-sm text-muted">
           Los tres niveles son tuyos. Los ves cuando quieras, las veces que
           quieras. Sin caducidad.

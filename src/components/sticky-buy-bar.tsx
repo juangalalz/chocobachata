@@ -44,7 +44,10 @@ export function StickyBuyBar({ hideWhen }: { hideWhen: string[] }) {
           </p>
           <p className="text-xs text-muted">Pago único · 3 niveles</p>
         </div>
-        <BuyButton className="flex h-12 items-center justify-center rounded-md bg-gold px-7 text-base font-semibold text-[#1a1408] transition hover:bg-gold-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
+        <BuyButton
+          cta="barra"
+          className="flex h-12 items-center justify-center rounded-md bg-gold px-7 text-base font-semibold text-[#1a1408] transition hover:bg-gold-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+        >
           Comprar
         </BuyButton>
       </div>

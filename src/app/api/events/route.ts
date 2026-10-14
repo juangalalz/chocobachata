@@ -3,7 +3,19 @@ import { NextResponse } from "next/server";
 import { sendMetaEvent } from "@/lib/meta";
 import { insertPageEvent } from "@/lib/visits";
 
-const names = new Set(["page_view", "scroll", "cta_click", "leave"]);
+const names = new Set([
+  "page_view",
+  "scroll",
+  "cta_click",
+  "leave",
+  "video_play",
+  "video_progress",
+]);
+
+// Textos cortos que manda la página; se recortan por si alguien manda basura.
+function label(value: unknown): string | null {
+  return typeof value === "string" && value ? value.slice(0, 40) : null;
+}
 
 type EventBody = {
   sessionId?: string;
@@ -15,6 +27,9 @@ type EventBody = {
   fbc?: string;
   fbp?: string;
   utmContent?: string;
+  cta?: string;
+  source?: string;
+  device?: string;
   eventId?: string;
   sourceUrl?: string;
 };
@@ -42,6 +57,9 @@ export async function POST(request: Request) {
     fbc: body.fbc ?? null,
     fbp: body.fbp ?? null,
     utm_content: body.utmContent ?? null,
+    cta: name === "cta_click" ? label(body.cta) : null,
+    source: label(body.source),
+    device: label(body.device),
     event_id: body.eventId ?? null,
     client_ip: name === "cta_click" ? (clientIp ?? null) : null,
     user_agent: name === "cta_click" ? (userAgent ?? null) : null,

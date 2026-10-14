@@ -12,6 +12,7 @@ import {
 
 export type PaidOrder = {
   orderId: string;
+  sessionId?: string;
   email: string;
   fullName?: string;
   amountCents?: number;
@@ -111,6 +112,7 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
 
   if (!saved) {
     await saveOrder(order.orderId, {
+      session_id: order.sessionId ?? null,
       email: order.email,
       full_name: order.fullName ?? null,
       amount_cents: order.amountCents ?? null,
