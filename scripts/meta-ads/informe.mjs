@@ -59,7 +59,7 @@ const rows = insights.data.map((row) => {
     impresiones: Number(row.impressions),
     "clics enlace": Number(row.inline_link_clicks ?? 0),
     CTR: `${Number(row.ctr ?? 0).toFixed(2)} %`,
-    "coste/clic": row.inline_link_clicks ? cop(spend / row.inline_link_clicks) : "–",
+    "coste/clic": Number(row.inline_link_clicks ?? 0) ? cop(spend / row.inline_link_clicks) : "–",
     "visitas web": web.visits,
     "tocan Comprar": web.clicked,
     ventas: web.sales,
