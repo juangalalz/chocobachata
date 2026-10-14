@@ -32,9 +32,9 @@ export function OfferCard() {
           quieras. Sin caducidad.
         </p>
         <p className="mt-3 text-center text-xs leading-5 text-muted">
-          Pago seguro con tarjeta, PayPal y más, a través de Lemon Squeezy,
-          empresa de Stripe. Nunca vemos ni guardamos los datos de tu
-          tarjeta. Recibirás el acceso en tu correo, sin crear una cuenta.
+          Pago seguro con tarjeta, Apple Pay, Google Pay o PayPal, a través de
+          Lemon Squeezy, empresa de Stripe. Nunca vemos ni guardamos los datos
+          de tu tarjeta. Recibirás el acceso en tu correo, sin crear una cuenta.
         </p>
         <ul className="mt-5 space-y-2 border-t border-white/10 pt-4 text-center text-sm text-ink">
           {offer.levels.map((level) => (

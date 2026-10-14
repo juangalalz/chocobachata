@@ -5,6 +5,7 @@ import { BuyButton } from "@/components/buy-button";
 import { DanceVideo } from "@/components/dance-video";
 import { OfferCard } from "@/components/offer-card";
 import { SocialLinks } from "@/components/social-links";
+import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { VisitTracker } from "@/components/visit-tracker";
 import { offer } from "@/lib/offer";
 
@@ -14,15 +15,15 @@ const buttonClass =
 const highlights = [
   {
     title: "3 niveles progresivos",
-    detail: "Del paso básico a combinaciones y estilo, con una ruta clara.",
+    detail: "Básico, intermedio y avanzado: del primer paso a combinaciones y estilo.",
   },
   {
     title: "Desde casa, a tu ritmo",
-    detail: "Sin horarios ni desplazamientos. Practicas cuando te venga bien.",
+    detail: "Míralo en tu TV, PC, tablet o móvil, sin horarios ni desplazamientos.",
   },
   {
     title: "Acceso sin caducidad",
-    detail: "Las clases son tuyas: repítelas todas las veces que necesites.",
+    detail: "Acceso de por vida: repite las clases todas las veces que necesites.",
   },
   {
     title: "Pago único",
@@ -56,7 +57,7 @@ const testimonials = [
 const steps = [
   {
     title: "Realizas el pago",
-    detail: `Un único cobro de ${offer.price} ${offer.currency} con tarjeta, PayPal u otros métodos. No necesitas crear una cuenta para comprar.`,
+    detail: `Un único cobro de ${offer.price} ${offer.currency} con tarjeta, Apple Pay, Google Pay o PayPal. No necesitas crear una cuenta para comprar.`,
   },
   {
     title: "Recibes tu acceso por correo",
@@ -101,6 +102,9 @@ const faqs = [
   },
 ];
 
+// La barra fija de móvil se esconde cuando cualquiera de estos botones está en pantalla.
+const hideBarWhen = ["oferta", "comprar-video", "comprar"];
+
 export default function HomePage() {
   return (
     <>
@@ -133,7 +137,10 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-6">
+          <div
+            id="oferta"
+            className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-6"
+          >
             <OfferCard />
           </div>
 
@@ -206,9 +213,9 @@ export default function HomePage() {
                 Hola, soy Choco
               </h2>
               <p className="mt-4 max-w-2xl leading-7 text-muted">
-                Enseño bachata desde los 15 años y sé lo que se siente al
-                empezar: no saber dónde poner los pies ni cuándo entrar en la
-                música. Por eso explico cada paso por partes, te ayudo a contar
+                Llevo más de 15 años bailando y enseñando bachata, y sé lo que
+                se siente al empezar: no saber dónde poner los pies ni cuándo
+                entrar en la música. Por eso explico cada paso por partes, te ayudo a contar
                 la música y te lo pongo fácil para que practiques en casa, a tu
                 ritmo y sin presión.
               </p>
@@ -277,6 +284,11 @@ export default function HomePage() {
                   poster="/choco-bailando.jpg"
                   label="Choco presenta el curso"
                 />
+                <div id="comprar-video" className="mt-4">
+                  <BuyButton className={buttonClass.replace("sm:w-auto", "")}>
+                    Comprar ahora · {offer.price} {offer.currency}
+                  </BuyButton>
+                </div>
               </div>
             </div>
           </div>
@@ -339,7 +351,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-white/10">
+        <section id="comprar" className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-14 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -366,7 +378,7 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12">
+        <div className="mx-auto max-w-6xl px-5 pt-10 pb-28 sm:pt-12 lg:pb-12">
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <div className="flex flex-col items-center gap-3 sm:items-start">
               <Image
@@ -406,6 +418,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      <StickyBuyBar hideWhen={hideBarWhen} />
     </>
   );
 }
