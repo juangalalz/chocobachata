@@ -11,7 +11,7 @@ export const offer = {
   ],
   checkoutUrl:
     process.env.NEXT_PUBLIC_CHECKOUT_URL ||
-    "https://choco.lemonsqueezy.com/checkout/buy/f5a0e2b7-b15d-4a74-875f-de00c8136a60?media=0&desc=0&discount=0",
+    "https://pago.chocobachata.com/checkout/buy/f5a0e2b7-b15d-4a74-875f-de00c8136a60?media=0&discount=0",
   levels: [
     {
       name: "Nivel 1 · Básico: fundamentos y ritmo",
