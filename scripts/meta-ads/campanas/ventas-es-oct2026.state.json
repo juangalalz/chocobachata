@@ -1,0 +1,18 @@
+{
+  "media": {
+    "~/Downloads/IMG_6535.MOV": "1108566208423820",
+    "~/Downloads/IMG_6538.MOV": "2961483660916772",
+    "~/Downloads/ad1chocovertical.jpeg": "480b7a0046a3408566bbda573bc545d5",
+    "~/Downloads/ad2chocovertical.jpeg": "53caa97fabdc9d605ffbadd1a6b050f3",
+    "~/Downloads/ad3chocovertical.jpeg": "fda4a22e56b8199e2e6d70d7c68460f9",
+    "~/Downloads/ad4chocovertical.jpeg": "fd68b86c47ed55e7381fb20c3d1ae3b4",
+    "~/Downloads/ad5chocovertical.jpeg": "1945b04762180cd9da83b8b91c33ee98"
+  },
+  "campaign": "120249404111380141",
+  "adSet": "120249404115160141",
+  "ads": {
+    "video1": "120249404590630141",
+    "video2": "120249404590710141",
+    "carrusel": "120249404590900141"
+  }
+}

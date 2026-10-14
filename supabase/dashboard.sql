@@ -80,6 +80,10 @@ as $$
         'all_orders', (
           select count(*) from public.orders
           where created_at >= since and wix_status <> 'refunded'
+        ),
+        'stuck', (
+          select count(*) from public.orders
+          where last_error is not null
         )
       )
       from joined

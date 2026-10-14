@@ -122,6 +122,7 @@ export type DashboardStats = {
     sales: number;
     refunds: number;
     all_orders: number;
+    stuck: number;
   };
   groups: FunnelRow[];
   ctas: { cta: string; clicks: number; sales: number }[];

@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { fulfillPaidOrder, revokeRefundedOrder } from "@/lib/fulfill-purchase";
+import { markResolved, reportFailure } from "@/lib/retry-orders";
 import { findSessionTracking } from "@/lib/visits";
 
 type LemonPayload = {
@@ -62,8 +63,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    const removed = await revokeRefundedOrder(payload.data.id, email);
-    return NextResponse.json({ ok: true, removed });
+    try {
+      const removed = await revokeRefundedOrder(payload.data.id, email);
+      await markResolved(payload.data.id, "reembolso");
+      return NextResponse.json({ ok: true, removed });
+    } catch (error) {
+      await reportFailure(payload.data.id, "reembolso", error, email);
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
   }
 
   if (event !== "order_created") {
@@ -80,20 +87,29 @@ export async function POST(request: Request) {
   const sessionId = custom.session_id?.trim();
   const tracking = sessionId ? await findSessionTracking(sessionId) : {};
 
-  const memberId = await fulfillPaidOrder({
-    orderId: payload.data.id,
-    sessionId,
-    email,
-    fullName: attributes.user_name,
-    amountCents: attributes.total,
-    currency: attributes.currency,
-    fbclid: tracking.fbclid ?? custom.fbclid,
-    fbc: tracking.fbc ?? custom.fbc,
-    fbp: tracking.fbp ?? custom.fbp,
-    clientIp: tracking.clientIp,
-    userAgent: tracking.userAgent,
-    sourceUrl: `${new URL(request.url).origin}/`,
-  });
+  // Si Wix falla respondemos 500: Lemon reintenta y, además, el reintento de
+  // /api/reintentos sigue desde el último paso que salió bien.
+  let memberId: string;
+  try {
+    memberId = await fulfillPaidOrder({
+      orderId: payload.data.id,
+      sessionId,
+      email,
+      fullName: attributes.user_name,
+      amountCents: attributes.total,
+      currency: attributes.currency,
+      fbclid: tracking.fbclid ?? custom.fbclid,
+      fbc: tracking.fbc ?? custom.fbc,
+      fbp: tracking.fbp ?? custom.fbp,
+      clientIp: tracking.clientIp,
+      userAgent: tracking.userAgent,
+      sourceUrl: `${new URL(request.url).origin}/`,
+    });
+  } catch (error) {
+    await reportFailure(payload.data.id, "acceso", error, email);
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
 
+  await markResolved(payload.data.id, "acceso");
   return NextResponse.json({ ok: true, memberId });
 }

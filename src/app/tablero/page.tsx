@@ -143,6 +143,14 @@ export default async function TableroPage({
         abres la página una vez con ?interno=1 en cada dispositivo.
       </p>
 
+      {totals.stuck > 0 ? (
+        <p className="mt-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+          {count(totals.stuck, "pedido tiene", "pedidos tienen")} un fallo pendiente (acceso,
+          aviso a Meta o reembolso). Se reintentan solos cada 10 minutos y te llega el aviso por
+          Telegram; si sigue aquí más de 2 horas, revisa la tabla orders en Supabase.
+        </p>
+      ) : null}
+
       <nav className="mt-6 flex flex-wrap gap-2">
         {ranges.map((item) => (
           <Link

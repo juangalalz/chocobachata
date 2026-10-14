@@ -34,9 +34,11 @@ type OrderRow = {
   wix_member_id: string | null;
   wix_status: string;
   capi_status: string;
+  alerted_at: string | null;
+  last_error: string | null;
 };
 
-function ordersUrl(query: string): string | null {
+export function ordersUrl(query: string): string | null {
   const base = process.env.SUPABASE_URL?.trim();
   if (!base || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
     return null;
@@ -45,7 +47,7 @@ function ordersUrl(query: string): string | null {
   return `${base.replace(/\/$/, "")}/rest/v1/orders${query}`;
 }
 
-function supabaseHeaders(): Record<string, string> {
+export function supabaseHeaders(): Record<string, string> {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
   return {
     apikey: key,
@@ -54,9 +56,9 @@ function supabaseHeaders(): Record<string, string> {
   };
 }
 
-async function readOrder(orderId: string): Promise<OrderRow | null> {
+export async function readOrder(orderId: string): Promise<OrderRow | null> {
   const url = ordersUrl(
-    `?lemon_order_id=eq.${encodeURIComponent(orderId)}&select=wix_member_id,wix_status,capi_status`,
+    `?lemon_order_id=eq.${encodeURIComponent(orderId)}&select=wix_member_id,wix_status,capi_status,alerted_at,last_error`,
   );
   if (!url) {
     console.error("[pedido] Falta Supabase: no se puede evitar repetir pasos");
@@ -73,7 +75,7 @@ async function readOrder(orderId: string): Promise<OrderRow | null> {
   return rows[0] ?? null;
 }
 
-async function saveOrder(orderId: string, fields: Record<string, unknown>): Promise<void> {
+export async function saveOrder(orderId: string, fields: Record<string, unknown>): Promise<void> {
   const url = ordersUrl("?on_conflict=lemon_order_id");
   if (!url) {
     return;
@@ -159,6 +161,7 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
     }
   } catch (error) {
     console.error("[pedido] Falló en Wix después de", step, order.orderId, error);
+    await saveOrder(order.orderId, { last_error: `Wix después de ${step}: ${String(error)}`.slice(0, 500) });
     throw error;
   }
 
@@ -213,6 +216,12 @@ async function hasOtherActiveOrder(memberId: string, orderId: string): Promise<b
 // pagado, conserva el acceso.
 export async function revokeRefundedOrder(orderId: string, email: string): Promise<number> {
   const saved = await readOrder(orderId);
+
+  // Queda anotado antes de tocar Wix: si algo falla, el reintento sabe que falta quitar el acceso.
+  await saveOrder(orderId, {
+    refund_requested_at: new Date().toISOString(),
+    ...(saved ? {} : { email }),
+  });
   const memberId = saved?.wix_member_id || (await findMemberId(email));
 
   if (!memberId) {

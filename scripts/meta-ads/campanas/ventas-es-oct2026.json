@@ -1,0 +1,115 @@
+{
+  "identity": {
+    "account": "act_1737132734169822",
+    "page": "1260136930521299",
+    "instagram": "17841402005831095",
+    "pixel": "1749983779474650",
+    "link": "https://curso.chocobachata.com/"
+  },
+  "utmCampaign": "ventas_es",
+  "campaign": {
+    "name": "VENTAS_ES_CursoCompleto_Oct2026",
+    "dailyBudget": 50000
+  },
+  "adSet": {
+    "name": "ES_25+_Advantage_Purchase",
+    "event": "PURCHASE",
+    "dsaName": "Choco Bachata",
+    "targeting": {
+      "countries": [
+        "ES"
+      ],
+      "ageMin": 25,
+      "suggestedAges": [
+        28,
+        55
+      ],
+      "interests": [
+        [
+          "6003445007740",
+          "Bachata (dance)"
+        ],
+        [
+          "6003143764440",
+          "Bachata (música)"
+        ],
+        [
+          "6003376239581",
+          "Salsa (baile)"
+        ],
+        [
+          "6003142268166",
+          "baile latino (danza)"
+        ],
+        [
+          "6003288536525",
+          "Baile de salón"
+        ],
+        [
+          "6003408513143",
+          "Romeo Santos"
+        ],
+        [
+          "6003229978545",
+          "Prince Royce"
+        ],
+        [
+          "6003003434573",
+          "Música latinoamericana"
+        ]
+      ]
+    }
+  },
+  "ads": [
+    {
+      "name": "Video 1 - IMG_6535",
+      "utmContent": "video1",
+      "type": "video",
+      "video": "~/Downloads/IMG_6535.MOV",
+      "title": "Aprende a Bailar Bachata desde tu Casa",
+      "text": "Aprende a bailar bachata desde cero, desde la comodidad de tu casa y en el horario que tú decidas.\n\nSi llevas tiempo queriendo aprender, este es el momento de tomar la decisión. Diseñamos un programa estructurado en 3 niveles donde te guiamos paso a paso, desde los fundamentos básicos hasta que logres soltura, ritmo y movimiento corporal para desenvolverte con confianza en cualquier pista.\n\nGracias a más de 15 años bailando y enseñando, estructuramos un método diseñado para ti.\n\n✅ Flexibilidad total: Míralo en tu TV, PC, tablet o móvil.\n✅ Mapa de ruta claro: 3 niveles completos (Básico, Intermedio, Avanzado).\n✅ Acceso Vitalicio: Un solo pago, acceso para siempre.\n\n🔥 Precio Especial de Lanzamiento: Llévate todo el programa por solo 29,99 €.\n\nToma la decisión hoy. Tu nueva rutina y tu nueva habilidad te esperan. Tu pago es 100% seguro con tarjeta, Apple Pay, Google Pay o PayPal.\n\nHaz clic en el botón de abajo, revisa los detalles y empieza tu proceso hoy mismo. 👇"
+    },
+    {
+      "name": "Video 2 - IMG_6538",
+      "utmContent": "video2",
+      "type": "video",
+      "video": "~/Downloads/IMG_6538.MOV",
+      "title": "Aprende a Bailar Bachata desde tu Casa 🏠💃",
+      "description": "Precio especial: 29,99 € • Acceso de por vida",
+      "text": "Aprende a bailar bachata con soltura y buen ritmo, desde la comodidad de tu casa y en el horario que tú decidas.\n\nSi ves videos de bachata y tienes la intención de aprender a dar tus primeros pasos con esa misma naturalidad, este programa es tu punto de partida. Estructuramos un método de 3 niveles con tomas a detalle y alta calidad de producción para que entiendas la técnica, el tiempo y el movimiento corporal exacto.\n\nTodo esto estructurado bajo un método probado gracias a más de 15 años de experiencia enseñando, dándote un mapa de ruta claro para aprender sin excusas.\n\n✅ Aprende a tu ritmo: Míralo en tu PC, móvil, tablet o TV.\n✅ Estructura completa: 3 niveles (Básico, Intermedio, Avanzado).\n✅ Acceso Vitalicio: Un solo pago, repasa las clases siempre que quieras.\n\n🔥 Precio Especial de Lanzamiento: Llévate el programa completo por 29,99 €.\n\nTu pago es 100% seguro y respaldado (Tarjeta, Apple Pay, Google Pay o PayPal). Toma la decisión hoy y empieza a bailar. Toca el botón de abajo para asegurar tu acceso. 👇"
+    },
+    {
+      "name": "Carrusel - 5 fotos en orden",
+      "utmContent": "carrusel",
+      "type": "carousel",
+      "text": "Aprende a bailar bachata paso a paso, desde la comodidad de tu casa y en el horario que tú decidas.\n\nSi llevas tiempo queriendo aprender, este programa te entrega el mapa de ruta exacto. Estructuramos un método de 3 niveles (Básico, Intermedio y Avanzado) para que logres soltura, ritmo y movimiento corporal. Todo guiado por un instructor con más de 15 años de experiencia.\n\n✅ A tu ritmo: Míralo en TV, PC, tablet o móvil.\n✅ Acceso Vitalicio: Un solo pago, repasa las clases siempre que quieras.\n\n🔥 Precio Especial de Lanzamiento: 29,99 €.\nTu pago es 100% seguro (Tarjeta, Apple Pay, Google Pay o PayPal). Toma la decisión, toca el botón de abajo y regálate tu primera clase hoy mismo. 👇",
+      "cards": [
+        {
+          "image": "~/Downloads/ad1chocovertical.jpeg",
+          "title": "Aprende bachata desde cero",
+          "description": "Curso online · 3 niveles"
+        },
+        {
+          "image": "~/Downloads/ad2chocovertical.jpeg",
+          "title": "Paso a paso, con método",
+          "description": "+15 años de experiencia"
+        },
+        {
+          "image": "~/Downloads/ad3chocovertical.jpeg",
+          "title": "Tu academia en casa",
+          "description": "En TV, móvil o PC"
+        },
+        {
+          "image": "~/Downloads/ad4chocovertical.jpeg",
+          "title": "Lo que dicen las alumnas",
+          "description": "Alumna del curso online"
+        },
+        {
+          "image": "~/Downloads/ad5chocovertical.jpeg",
+          "title": "Los 3 niveles por 29,99 €",
+          "description": "Pago único · Acceso vitalicio"
+        }
+      ]
+    }
+  ]
+}
