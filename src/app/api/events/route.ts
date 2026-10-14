@@ -43,6 +43,8 @@ export async function POST(request: Request) {
     fbp: body.fbp ?? null,
     utm_content: body.utmContent ?? null,
     event_id: body.eventId ?? null,
+    client_ip: name === "cta_click" ? (clientIp ?? null) : null,
+    user_agent: name === "cta_click" ? (userAgent ?? null) : null,
   });
 
   if (name === "page_view" && body.eventId) {

@@ -1,0 +1,260 @@
+<script>
+/* Choco Bachata: menu Iniciar sesion / Mis programas,
+   atajo al formulario de email (con velo de carga)
+   e ir a /my-programs tras login.
+   No recarga la pagina ni lee cookies. */
+(function () {
+  if (window.__cbLogin) return;
+  window.__cbLogin = true;
+
+  var PATH = '/my-programs';
+  var KEY = 'cbMember';
+  var DIALOG = '[data-testid="siteMembersDialogLayout"]';
+  var LABEL = 'a[href$="/my-programs"] [data-part="label"]';
+
+  function isMember() {
+    try { return localStorage.getItem(KEY) === '1'; }
+    catch (e) { return false; }
+  }
+  function setMember(on) {
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    paintMenu(false);
+  }
+  function onPrograms() {
+    return location.pathname.replace(/\/+$/, '') === PATH;
+  }
+
+  /* Etiqueta del menu solo con CSS. Wix usa ::after para el
+     subrayado, por eso el texto va en ::before. */
+  var css = document.createElement('style');
+  css.textContent =
+    LABEL + '[data-cb="g"]{' +
+      'font-size:0!important;' +
+      'letter-spacing:0!important;' +
+      'line-height:0!important}' +
+    LABEL + '[data-cb="g"]::before{' +
+      'display:inline;position:static;' +
+      'margin:0;padding:0;width:auto;height:auto;' +
+      'opacity:1;visibility:visible;' +
+      'content:"Iniciar sesi\\00F3n";' +
+      'font-size:var(--cb-fs);' +
+      'letter-spacing:var(--cb-ls);' +
+      'line-height:var(--cb-lh)}' +
+    '#cb-veil{position:fixed;top:0;left:0;right:0;bottom:0;' +
+      'z-index:2147483647;background:#000;display:flex;' +
+      'align-items:center;justify-content:center;' +
+      'transition:opacity .25s}' +
+    '#cb-veil i{width:44px;height:44px;border-radius:50%;' +
+      'border:3px solid rgba(212,175,55,.25);' +
+      'border-top-color:#D4AF37;' +
+      'animation:cb-spin .8s linear infinite}' +
+    '@keyframes cb-spin{to{transform:rotate(360deg)}}' +
+    /* Solo se ocultan Registrate e Iniciar sesion sin formulario;
+       reset de contrasena y otros dialogos de Wix quedan visibles */
+    'html[data-cb-auto] ' + DIALOG +
+      ':has(h2[data-testid="signUp.headline"]):not(:has(form)),' +
+    'html[data-cb-auto] ' + DIALOG +
+      ':has(h2[id^="loginHeadline_"])' +
+      ':not(:has(form[data-testid="emailAuth"])){' +
+      'opacity:0!important}';
+  document.head.appendChild(css);
+
+  /* Velo de carga: tapa los cambios de pantalla del dialogo */
+  var veil = null, veilTimer = null, waitingDialog = false;
+  var root = document.documentElement;
+  function autoMode(on) {
+    if (on) root.setAttribute('data-cb-auto', '');
+    else root.removeAttribute('data-cb-auto');
+  }
+  autoMode(true);
+  function showVeil(ms) {
+    if (!veil) {
+      veil = document.createElement('div');
+      veil.id = 'cb-veil';
+      veil.innerHTML = '<i></i>';
+      document.body.appendChild(veil);
+    }
+    clearTimeout(veilTimer);
+    veilTimer = setTimeout(function () {
+      autoMode(false);
+      hideVeil();
+    }, ms);
+  }
+  function hideVeil() {
+    clearTimeout(veilTimer);
+    waitingDialog = false;
+    if (!veil) return;
+    var v = veil; veil = null;
+    v.style.opacity = '0';
+    setTimeout(function () { v.remove(); }, 260);
+  }
+
+  function paintMenu(force) {
+    var want = isMember() ? 'm' : 'g';
+    var labels = document.querySelectorAll(LABEL);
+    for (var i = 0; i < labels.length; i++) {
+      var el = labels[i];
+      if (!force && el.getAttribute('data-cb') === want) continue;
+      el.setAttribute('data-cb', 'm');
+      var cs = getComputedStyle(el);
+      el.style.setProperty('--cb-fs', cs.fontSize);
+      el.style.setProperty('--cb-ls', cs.letterSpacing);
+      el.style.setProperty('--cb-lh', cs.lineHeight);
+      el.setAttribute('data-cb', want);
+    }
+  }
+
+  var dialogOpen = false, sawAuthDialog = false;
+  var attempt = null, wantsSignup = false;
+  var autoClicks = 0, closeTimer = null, stepTimer = null;
+  var lastAuto = null, lastAutoAt = 0;
+
+  function getDialog() { return document.querySelector(DIALOG); }
+  function isLogin(d) {
+    return !!d.querySelector('h2[id^="loginHeadline_"]');
+  }
+  function isSignup(d) {
+    return !!d.querySelector('h2[data-testid="signUp.headline"]');
+  }
+
+  function needsAuto(d) {
+    if (wantsSignup || autoClicks >= 4) return false;
+    if (isSignup(d)) return !d.querySelector('form');
+    return isLogin(d) &&
+           !d.querySelector('form[data-testid="emailAuth"]');
+  }
+
+  function autoStep() {
+    stepTimer = null;
+    var d = getDialog();
+    if (!d || wantsSignup || autoClicks >= 4) return;
+    var btn = null;
+    if (isSignup(d) && !d.querySelector('form')) {
+      /* Pantalla Registrate: enlace Iniciar sesion */
+      btn = d.querySelector(
+        'button[data-testid="signUp.switchToSignUp"]');
+    } else if (isLogin(d) &&
+               !d.querySelector('form[data-testid="emailAuth"]')) {
+      /* Pantalla Iniciar sesion: Iniciar sesion con tu email */
+      btn = d.querySelector(
+        'div[data-testid="switchToEmailLink"] ' +
+        'button[data-testid="buttonElement"]');
+    }
+    if (!btn || btn.getAttribute('aria-disabled') === 'true') return;
+    if (btn === lastAuto && Date.now() - lastAutoAt < 1500) return;
+    lastAuto = btn; lastAutoAt = Date.now(); autoClicks++;
+    btn.click();
+    stepTimer = setTimeout(autoStep, 1600);
+  }
+
+  function onClosed() {
+    closeTimer = null;
+    if (getDialog()) return;
+    hideVeil();
+    autoMode(true);
+    dialogOpen = false; wantsSignup = false;
+    autoClicks = 0; lastAuto = null;
+    var a = attempt; attempt = null;
+    if (!a) return;
+    setMember(true);
+    if (a === 'email' && !onPrograms()) location.assign(PATH);
+  }
+
+  function check() {
+    paintMenu(false);
+    var d = getDialog();
+    if (d) {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      dialogOpen = true;
+      if (isLogin(d) || isSignup(d)) {
+        sawAuthDialog = true;
+        if (isMember()) setMember(false);
+      }
+      if (needsAuto(d)) {
+        if (!veil || waitingDialog) {
+          waitingDialog = false;
+          showVeil(6000);
+        }
+        if (!stepTimer) stepTimer = setTimeout(autoStep, 150);
+      } else {
+        if (wantsSignup || autoClicks >= 4) autoMode(false);
+        hideVeil();
+      }
+    } else if (veil && !waitingDialog && !dialogOpen) {
+      hideVeil();
+    } else if (dialogOpen && !closeTimer) {
+      closeTimer = setTimeout(onClosed, 800);
+    }
+  }
+
+  var queued = false;
+  new MutationObserver(function () {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; check(); });
+  }).observe(document.documentElement,
+             { childList: true, subtree: true });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var d = t.closest(DIALOG);
+    if (d) {
+      if (t.closest('form[data-testid="emailAuth"] ' +
+                    '[data-testid="submit"] button')) {
+        if (isLogin(d)) attempt = 'email';
+      } else if (t.closest('[data-testid="socialAuth"] button, ' +
+                           'button[data-testid$="-small"]')) {
+        attempt = 'social';
+      } else if (t.closest('[data-testid="xButton"], ' +
+                           '[data-testid^="forgotPassword"]')) {
+        attempt = null;
+      } else if (t.closest('button[data-testid="switchToSignUp"]')) {
+        attempt = null; wantsSignup = true; autoMode(false);
+      }
+      return;
+    }
+    var c = t.closest('a, button');
+    var out = /^(cerrar sesi[oó]n|salir|log ?out)$/i;
+    if (e.isTrusted && c && out.test(c.textContent.trim())) {
+      setMember(false);
+    }
+  }, true);
+
+  document.addEventListener('submit', function (e) {
+    var f = e.target, d = f && f.closest && f.closest(DIALOG);
+    if (d && f.matches('form[data-testid="emailAuth"]') && isLogin(d)) {
+      attempt = 'email';
+    }
+  }, true);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && getDialog()) attempt = null;
+  }, true);
+
+  var rt;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () { paintMenu(true); }, 200);
+  });
+
+  /* En /my-programs sin sesion: velo hasta que Wix abra el dialogo */
+  if (onPrograms() && !isMember()) {
+    waitingDialog = true;
+    showVeil(20000);
+  }
+
+  /* En /my-programs sin que Wix pida login: solo cambia la etiqueta */
+  if (onPrograms()) {
+    var later = function () {
+      setTimeout(function () {
+        if (!sawAuthDialog && !getDialog()) setMember(true);
+      }, 20000);
+    };
+    if (document.readyState === 'complete') later();
+    else window.addEventListener('load', later);
+  }
+
+  check();
+})();
+</script>

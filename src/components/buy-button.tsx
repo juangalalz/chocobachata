@@ -41,16 +41,8 @@ export function BuyButton({ children, className }: BuyButtonProps) {
           { eventID: eventId },
         );
 
+        // Lemon solo necesita la sesión: el webhook recupera de Supabase los datos de Meta.
         url.searchParams.set("checkout[custom][session_id]", context.sessionId);
-        if (context.fbclid) {
-          url.searchParams.set("checkout[custom][fbclid]", context.fbclid);
-        }
-        if (context.fbc) {
-          url.searchParams.set("checkout[custom][fbc]", context.fbc);
-        }
-        if (context.fbp) {
-          url.searchParams.set("checkout[custom][fbp]", context.fbp);
-        }
 
         const destination = url.toString();
         requestAnimationFrame(() => {

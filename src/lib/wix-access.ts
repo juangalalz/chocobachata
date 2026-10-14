@@ -10,11 +10,15 @@ function wixHeaders(): HeadersInit {
   };
 }
 
-async function wix<T>(url: string, body: unknown): Promise<WixResult<T>> {
+async function wix<T>(
+  url: string,
+  body?: unknown,
+  method: "POST" | "DELETE" = "POST",
+): Promise<WixResult<T>> {
   const response = await fetch(url, {
-    method: "POST",
+    method,
     headers: wixHeaders(),
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await response.text();
 
@@ -22,7 +26,7 @@ async function wix<T>(url: string, body: unknown): Promise<WixResult<T>> {
     return { ok: false, status: response.status, body: text.slice(0, 500) };
   }
 
-  return { ok: true, data: JSON.parse(text) as T };
+  return { ok: true, data: (text ? JSON.parse(text) : {}) as T };
 }
 
 export async function findOrCreateMember(
@@ -51,6 +55,16 @@ export async function findOrCreateMember(
     throw new Error(`Wix no creó el alumno (${created.status})`);
   }
 
+  const memberId = await findMemberId(email);
+  if (!memberId) {
+    throw new Error("Wix ya tenía el correo, pero no pude leer el alumno");
+  }
+
+  await approveMember(memberId);
+  return memberId;
+}
+
+export async function findMemberId(email: string): Promise<string | undefined> {
   const found = await wix<{ members: { id: string }[] }>(
     "https://www.wixapis.com/members/v1/members/query",
     {
@@ -61,13 +75,7 @@ export async function findOrCreateMember(
     },
   );
 
-  const memberId = found.ok ? found.data.members?.[0]?.id : undefined;
-  if (!memberId) {
-    throw new Error("Wix ya tenía el correo, pero no pude leer el alumno");
-  }
-
-  await approveMember(memberId);
-  return memberId;
+  return found.ok ? found.data.members?.[0]?.id : undefined;
 }
 
 const WELCOME_LABEL_KEY = "custom.acceso-bachata-RxzyT";
@@ -112,13 +120,15 @@ async function approveMember(memberId: string): Promise<void> {
   throw new Error(`Wix no aprobó el alumno (${approved.status})`);
 }
 
-export async function enrollInPrograms(memberId: string): Promise<void> {
-  const programIds = (process.env.WIX_PROGRAM_IDS ?? "")
+function programIds(): string[] {
+  return (process.env.WIX_PROGRAM_IDS ?? "")
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
+}
 
-  for (const programId of programIds) {
+export async function enrollInPrograms(memberId: string): Promise<void> {
+  for (const programId of programIds()) {
     const enrolled = await wix(
       "https://www.wixapis.com/online-programs/v3/participants",
       {
@@ -138,4 +148,53 @@ export async function enrollInPrograms(memberId: string): Promise<void> {
       throw new Error(`Wix no inscribió el nivel ${programId} (${enrolled.status})`);
     }
   }
+}
+
+type Participant = {
+  id: string;
+  programId: string;
+  enrollmentStatus?: string;
+  enrollmentInfo?: { pricingType?: string };
+};
+
+// Quita los tres niveles que inscribió la web. Las inscripciones que el alumno
+// haya pagado directamente en Wix no se tocan.
+export async function removeFromPrograms(memberId: string): Promise<number> {
+  const ids = new Set(programIds());
+  const found = await wix<{ participants?: Participant[] }>(
+    "https://www.wixapis.com/online-programs/v3/participants/query",
+    {
+      query: {
+        filter: { memberId: { $eq: memberId } },
+        cursorPaging: { limit: 100 },
+      },
+    },
+  );
+
+  if (!found.ok) {
+    throw new Error(`Wix no devolvió las inscripciones (${found.status})`);
+  }
+
+  const toRemove = (found.data.participants ?? []).filter(
+    (participant) =>
+      ids.has(participant.programId) &&
+      participant.enrollmentStatus === "JOINED" &&
+      participant.enrollmentInfo?.pricingType === "ADDED_MANUALLY",
+  );
+
+  for (const participant of toRemove) {
+    const removed = await wix(
+      `https://www.wixapis.com/online-programs/v3/participants/${participant.id}`,
+      undefined,
+      "DELETE",
+    );
+
+    if (!removed.ok && removed.status !== 404) {
+      throw new Error(
+        `Wix no quitó el nivel ${participant.programId} (${removed.status})`,
+      );
+    }
+  }
+
+  return toRemove.length;
 }

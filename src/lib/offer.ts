@@ -4,9 +4,14 @@ export const offer = {
   previousPrice: "45",
   currency: "€",
   email: "chocobachata10@gmail.com",
+  socials: [
+    { name: "Instagram", url: "https://www.instagram.com/chocobach_" },
+    { name: "TikTok", url: "https://www.tiktok.com/@chocobach_" },
+    { name: "Facebook", url: "https://www.facebook.com/yorvys.mena.7" },
+  ],
   checkoutUrl:
     process.env.NEXT_PUBLIC_CHECKOUT_URL ||
-    "https://choco.lemonsqueezy.com/checkout/buy/f8942fd3-b7a2-48be-a032-cb7acea8a267?media=0&desc=0&discount=0",
+    "https://choco.lemonsqueezy.com/checkout/buy/f5a0e2b7-b15d-4a74-875f-de00c8136a60?media=0&desc=0&discount=0",
   levels: [
     {
       name: "Nivel 1 · Fundamentos y ritmo",

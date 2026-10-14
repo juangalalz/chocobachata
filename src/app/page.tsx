@@ -1,7 +1,9 @@
 import Image from "next/image";
 
 import { BuyButton } from "@/components/buy-button";
+import { DanceVideo } from "@/components/dance-video";
 import { OfferCard } from "@/components/offer-card";
+import { SocialLinks } from "@/components/social-links";
 import { VisitTracker } from "@/components/visit-tracker";
 import { offer } from "@/lib/offer";
 
@@ -27,10 +29,33 @@ const highlights = [
   },
 ];
 
+// Para no romper el diseño: quote hasta 180 caracteres, name hasta 20 y
+// detail hasta 30.
+const testimonials = [
+  {
+    quote:
+      "La explicación es muy clara y, al poder repetir las clases a mi ritmo, he logrado pasos que antes me parecían imposibles.",
+    name: "Marcela M.",
+    detail: "Alumna del curso online",
+  },
+  {
+    quote:
+      "Estoy súper contento con las clases. He aprendido un montón y ya me siento mucho más seguro bailando.",
+    name: "Santiago F.",
+    detail: "Alumno del curso online",
+  },
+  {
+    quote:
+      "He sentido muchísimo el avance. El cambio en mí ha sido gracias a la paciencia y la dedicación de Choco, y a la seguridad que nos da.",
+    name: "Angela G.",
+    detail: "Alumna desde hace años",
+  },
+];
+
 const steps = [
   {
     title: "Realizas el pago",
-    detail: `Un único cobro de ${offer.price} ${offer.currency} con tarjeta. No necesitas crear una cuenta para comprar.`,
+    detail: `Un único cobro de ${offer.price} ${offer.currency} con tarjeta, PayPal u otros métodos. No necesitas crear una cuenta para comprar.`,
   },
   {
     title: "Recibes tu acceso por correo",
@@ -60,9 +85,18 @@ const faqs = [
       "Recibirás un correo con un enlace para crear tu contraseña. A partir de ahí entras a la plataforma y empiezas con el nivel 1.",
   },
   {
+    question: "¿Es seguro pagar aquí?",
+    answer:
+      "Sí. El pago lo procesa Lemon Squeezy, la plataforma de pagos de Stripe, que cifra todos tus datos. Por eso, al comprar verás su página de pago y el cargo aparecerá a su nombre en tu banco. Nosotros nunca vemos ni guardamos los datos de tu tarjeta.",
+  },
+  {
     question: "¿Puedo practicar por mi cuenta en casa?",
     answer:
       "Sí. Choco explica cada paso por partes para que puedas practicarlo en casa, a tu ritmo y sin prisas.",
+  },
+  {
+    question: "¿Y si me atasco o algo no me funciona?",
+    answer: `Escríbenos a ${offer.email} y te ayudamos, ya sea con el acceso, con un video o con un paso que no te sale. Como el curso es digital y tienes acceso desde el primer momento, no hacemos devoluciones una vez realizada la compra, pero sí te acompañamos para que avances.`,
   },
 ];
 
@@ -187,6 +221,68 @@ export default function HomePage() {
 
         <section className="border-t border-white/10">
           <div className="mx-auto max-w-6xl px-5 py-14">
+            <p className="text-sm font-semibold tracking-[0.16em] text-gold uppercase">
+              Opiniones de alumnos
+            </p>
+            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
+              Del primer paso a la pista
+            </h2>
+            <p className="mt-3 max-w-2xl text-muted">
+              Lo que cuentan quienes empezaron desde cero.
+            </p>
+            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center lg:gap-14">
+              <ul className="grid gap-4">
+                {testimonials.map((item) => (
+                  <li
+                    key={item.name}
+                    className="relative overflow-hidden rounded-2xl border border-white/10 border-l-gold/60 border-l-2 bg-card p-5 sm:p-6"
+                  >
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute -top-3 right-3 font-display text-[4.5rem] sm:-top-4 sm:right-4 sm:text-[7rem] leading-none font-extrabold text-gold/10"
+                    >
+                      “
+                    </span>
+                    <figure className="relative">
+                      <blockquote className="max-w-[60ch] text-[1.05rem] leading-7 text-ink/90 italic">
+                        “{item.quote}”
+                      </blockquote>
+                      <figcaption className="mt-4 flex items-center gap-3">
+                        <span
+                          aria-hidden
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 font-display text-sm font-bold text-gold"
+                        >
+                          {item.name
+                            .split(" ")
+                            .map((part) => part[0])
+                            .join("")}
+                        </span>
+                        <span>
+                          <span className="block text-sm font-semibold">
+                            {item.name}
+                          </span>
+                          <span className="block text-xs text-muted">
+                            {item.detail}
+                          </span>
+                        </span>
+                      </figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+              <div className="mx-auto w-full max-w-xs lg:max-w-none">
+                <DanceVideo
+                  src="/choco-bailando.mp4"
+                  poster="/choco-bailando.jpg"
+                  label="Choco presenta el curso"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/10">
+          <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Empezar es muy sencillo
             </h2>
@@ -269,24 +365,39 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <Image
-            src="/logo.png"
-            alt=""
-            width={3255}
-            height={958}
-            className="h-9 w-auto"
-          />
-          <p>
-            ¿Tienes dudas? Escríbenos a{" "}
-            <a
-              href={`mailto:${offer.email}`}
-              className="text-ink hover:text-gold"
-            >
-              {offer.email}
-            </a>
-          </p>
-          <p>© 2026 Choco Bachata. Todos los derechos reservados.</p>
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12">
+          <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <div className="flex flex-col items-center gap-3 sm:items-start">
+              <Image
+                src="/logo.png"
+                alt="Choco Bachata"
+                width={3255}
+                height={958}
+                className="h-10 w-auto"
+              />
+              <p className="max-w-xs text-sm leading-6 text-muted">
+                Curso online de bachata para aprender desde cero, a tu ritmo.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3 sm:items-end">
+              <p className="text-xs font-semibold tracking-[0.16em] text-gold uppercase">
+                Síguenos
+              </p>
+              <SocialLinks />
+            </div>
+          </div>
+          <div className="mt-8 flex flex-col items-center gap-2 border-t border-white/10 pt-6 text-center text-xs text-muted sm:flex-row sm:justify-between sm:text-left">
+            <p>© 2026 Choco Bachata. Todos los derechos reservados.</p>
+            <p>
+              ¿Tienes dudas?{" "}
+              <a
+                href={`mailto:${offer.email}`}
+                className="text-ink transition hover:text-gold"
+              >
+                {offer.email}
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
     </>

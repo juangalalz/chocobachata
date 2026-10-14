@@ -3,7 +3,9 @@ import "server-only";
 import { sendMetaEvent, type MetaStatus } from "@/lib/meta";
 import {
   enrollInPrograms,
+  findMemberId,
   findOrCreateMember,
+  removeFromPrograms,
   sendAccessEmail,
   sendWelcomeEmail,
 } from "@/lib/wix-access";
@@ -17,6 +19,8 @@ export type PaidOrder = {
   fbclid?: string;
   fbc?: string;
   fbp?: string;
+  clientIp?: string;
+  userAgent?: string;
   sourceUrl?: string;
 };
 
@@ -100,6 +104,11 @@ async function saveOrder(orderId: string, fields: Record<string, unknown>): Prom
 export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
   const saved = await readOrder(order.orderId);
 
+  // Un reintento de order_created no puede devolver el acceso a un pedido reembolsado.
+  if (saved?.wix_status === "refunded") {
+    return saved.wix_member_id ?? "";
+  }
+
   if (!saved) {
     await saveOrder(order.orderId, {
       email: order.email,
@@ -109,6 +118,8 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
       fbclid: order.fbclid ?? null,
       fbc: order.fbc ?? null,
       fbp: order.fbp ?? null,
+      client_ip: order.clientIp ?? null,
+      user_agent: order.userAgent ?? null,
       wix_status: "pending",
     });
   }
@@ -156,6 +167,9 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
     const shared = {
       sourceUrl: order.sourceUrl,
       email: order.email,
+      fullName: order.fullName,
+      clientIp: order.clientIp,
+      userAgent: order.userAgent,
       fbc: order.fbc,
       fbp: order.fbp,
       value,
@@ -177,4 +191,44 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
   }
 
   return memberId;
+}
+
+async function hasOtherActiveOrder(memberId: string, orderId: string): Promise<boolean> {
+  const url = ordersUrl(
+    `?wix_member_id=eq.${encodeURIComponent(memberId)}` +
+      `&lemon_order_id=neq.${encodeURIComponent(orderId)}` +
+      "&wix_status=neq.refunded&select=lemon_order_id&limit=1",
+  );
+  if (!url) {
+    return false;
+  }
+
+  const response = await fetch(url, { headers: supabaseHeaders(), cache: "no-store" });
+  return response.ok && ((await response.json()) as unknown[]).length > 0;
+}
+
+// Reembolso total: el alumno sale de los tres niveles. Si tiene otro pedido
+// pagado, conserva el acceso.
+export async function revokeRefundedOrder(orderId: string, email: string): Promise<number> {
+  const saved = await readOrder(orderId);
+  const memberId = saved?.wix_member_id || (await findMemberId(email));
+
+  if (!memberId) {
+    console.error("[reembolso] No encontré el alumno en Wix", orderId);
+    await saveOrder(orderId, { email, wix_status: "refunded" });
+    return 0;
+  }
+
+  if (await hasOtherActiveOrder(memberId, orderId)) {
+    await saveOrder(orderId, { wix_status: "refunded" });
+    return 0;
+  }
+
+  const removed = await removeFromPrograms(memberId);
+  await saveOrder(orderId, {
+    wix_status: "refunded",
+    ...(saved ? {} : { email, wix_member_id: memberId }),
+  });
+
+  return removed;
 }

@@ -11,6 +11,7 @@ type MetaInput = {
   fbc?: string;
   fbp?: string;
   email?: string;
+  fullName?: string;
   value?: number;
   currency?: string;
 };
@@ -43,10 +44,19 @@ export async function sendMetaEvent(input: MetaInput): Promise<MetaStatus> {
     userData.fbp = input.fbp;
   }
 
+  const hash = (value: string) =>
+    createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
+
   if (input.email) {
-    userData.em = [
-      createHash("sha256").update(input.email.trim().toLowerCase()).digest("hex"),
-    ];
+    userData.em = [hash(input.email)];
+  }
+
+  const [firstName, ...rest] = input.fullName?.trim().split(/\s+/) ?? [];
+  if (firstName) {
+    userData.fn = [hash(firstName)];
+  }
+  if (rest.length > 0) {
+    userData.ln = [hash(rest.join(" "))];
   }
 
   if (Object.keys(userData).length === 0) {
