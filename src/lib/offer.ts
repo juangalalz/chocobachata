@@ -12,6 +12,9 @@ export const offer = {
   checkoutUrl:
     process.env.NEXT_PUBLIC_CHECKOUT_URL ||
     "https://pago.chocobachata.com/checkout/buy/f5a0e2b7-b15d-4a74-875f-de00c8136a60?media=0&discount=0",
+  // País que Lemon trae marcado en la facturación. Con España solo pide el código
+  // postal; sin él marca Estados Unidos y pide dirección, estado, ciudad y ZIP.
+  checkoutCountry: "ES",
   levels: [
     {
       name: "Nivel 1 · Básico: fundamentos y ritmo",
