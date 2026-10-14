@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { BuyButton } from "@/components/buy-button";
 import { DanceVideo } from "@/components/dance-video";
@@ -387,7 +388,12 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-8 flex flex-col items-center gap-2 border-t border-white/10 pt-6 text-center text-xs text-muted sm:flex-row sm:justify-between sm:text-left">
-            <p>© 2026 Choco Bachata. Todos los derechos reservados.</p>
+            <p>
+              © 2026 Choco Bachata. Todos los derechos reservados. ·{" "}
+              <Link href="/privacidad" className="transition hover:text-gold">
+                Política de privacidad
+              </Link>
+            </p>
             <p>
               ¿Tienes dudas?{" "}
               <a
