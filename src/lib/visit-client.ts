@@ -9,7 +9,11 @@ export type VisitName =
   | "cta_click"
   | "leave"
   | "video_play"
-  | "video_progress";
+  | "video_progress"
+  | "checkout_return"
+  | "rescue_answer"
+  | "rescue_close"
+  | "whatsapp_click";
 
 export type VisitContext = {
   sessionId: string;
@@ -62,7 +66,7 @@ function trafficSource(params: URLSearchParams): string {
   return "directo";
 }
 
-function deviceType(): string {
+export function deviceType(): string {
   const agent = navigator.userAgent;
   if (/iPad|Tablet/i.test(agent)) {
     return "tablet";

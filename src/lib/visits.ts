@@ -184,6 +184,14 @@ export type DashboardStats = {
     played_sales: number;
     played_clicked: number;
   };
+  rescue: {
+    returned: number;
+    median_seconds: number | null;
+    quick: number;
+    closed: number;
+    whatsapp: number;
+    answers: Record<string, number>;
+  };
   recent: {
     started: string;
     ad: string | null;

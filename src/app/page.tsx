@@ -5,6 +5,7 @@ import { BuyButton } from "@/components/buy-button";
 import { DanceVideo } from "@/components/dance-video";
 import { OfferCard } from "@/components/offer-card";
 import { SocialLinks } from "@/components/social-links";
+import { CheckoutRescue } from "@/components/checkout-rescue";
 import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { VisitTracker } from "@/components/visit-tracker";
 import { offer } from "@/lib/offer";
@@ -421,6 +422,7 @@ export default function HomePage() {
         </div>
       </footer>
       <StickyBuyBar hideWhen={hideBarWhen} />
+      <CheckoutRescue />
     </>
   );
 }

@@ -96,6 +96,10 @@ export function createBackend() {
         return json(filterRows([...orders.values()], url.searchParams));
       }
       if (url.pathname === "/rest/v1/page_events") {
+        if (method === "POST") {
+          pageEvents.push({ created_at: new Date().toISOString(), ...body });
+          return new Response(null, { status: 201 });
+        }
         return json(filterRows(pageEvents, url.searchParams));
       }
     }

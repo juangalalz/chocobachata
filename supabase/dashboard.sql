@@ -31,7 +31,12 @@ as $$
       max(seconds) filter (where name = 'leave') as seconds,
       bool_or(name = 'video_play') as video_play,
       coalesce(max(depth) filter (where name = 'video_progress'), 0) as video_depth,
-      (array_agg(cta order by created_at desc) filter (where name = 'cta_click'))[1] as last_cta
+      (array_agg(cta order by created_at desc) filter (where name = 'cta_click'))[1] as last_cta,
+      bool_or(name = 'checkout_return') as returned,
+      max(seconds) filter (where name = 'checkout_return') as checkout_seconds,
+      (array_agg(cta order by created_at desc) filter (where name = 'rescue_answer'))[1] as rescue_answer,
+      bool_or(name = 'rescue_close') as rescue_closed,
+      bool_or(name = 'whatsapp_click') as whatsapp
     from public.page_events
     where created_at >= since
     group by session_id
@@ -109,6 +114,25 @@ as $$
         'p100', count(*) filter (where video_depth >= 100),
         'played_sales', coalesce(sum(sales) filter (where video_play), 0),
         'played_clicked', count(*) filter (where video_play and clicked)
+      )
+      from joined
+    ),
+    -- Quien abre el pago y vuelve sin comprar: cuánto tardó y qué contestó al rescate.
+    'rescue', (
+      select jsonb_build_object(
+        'returned', count(*) filter (where returned and sales = 0),
+        'median_seconds', percentile_cont(0.5) within group (order by checkout_seconds)
+          filter (where returned and sales = 0),
+        'quick', count(*) filter (where returned and sales = 0 and checkout_seconds < 15),
+        'closed', count(*) filter (where rescue_closed and rescue_answer is null),
+        'whatsapp', count(*) filter (where whatsapp),
+        'answers', coalesce((
+          select jsonb_object_agg(a.rescue_answer, a.total)
+          from (
+            select rescue_answer, count(*) as total from joined
+            where rescue_answer is not null group by 1
+          ) a
+        ), '{}'::jsonb)
       )
       from joined
     ),

@@ -30,6 +30,13 @@ const ctaNames: Record<string, string> = {
   final: "Final de la página",
 };
 
+const rescueNames: Record<string, string> = {
+  pensarlo: "Quiero pensarlo un poco",
+  pago: "Tuve un problema al pagar",
+  otra_forma: "Prefiero pagar de otra forma",
+  duda: "Tengo una duda sobre el curso",
+};
+
 function percent(part: number, total: number): string {
   if (total === 0) {
     return "–";
@@ -126,7 +133,7 @@ export default async function TableroPage({
     );
   }
 
-  const { totals, video } = stats;
+  const { totals, video, rescue } = stats;
   const unlinked = totals.all_orders - totals.sales;
 
   return (
@@ -252,6 +259,47 @@ export default async function TableroPage({
           </ul>
         </section>
       </div>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold">Vuelven del pago sin comprar</h2>
+        <p className="mt-2 text-sm text-muted">
+          Menos de 15 s en el pago: miraron y se fueron. Más de un minuto: intentaron pagar y algo
+          falló. A quien vuelve le preguntamos qué le frenó.
+        </p>
+        {rescue.returned === 0 ? (
+          <p className="mt-4 text-sm text-muted">Nadie ha vuelto del pago en este rango.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-white/10 border-y border-white/10 text-sm">
+            <li className="flex justify-between py-3">
+              <span className="font-semibold">Volvieron sin comprar</span>
+              <span className="text-muted">
+                {rescue.returned}
+                {rescue.median_seconds != null
+                  ? ` · ${Math.round(rescue.median_seconds)} s en el pago (mediana)`
+                  : ""}
+              </span>
+            </li>
+            <li className="flex justify-between py-3">
+              <span>Se fueron en menos de 15 s</span>
+              <span className="text-muted">{rescue.quick}</span>
+            </li>
+            {Object.entries(rescueNames).map(([key, name]) => (
+              <li key={key} className="flex justify-between py-3">
+                <span>{name}</span>
+                <span className="text-muted">{rescue.answers[key] ?? 0}</span>
+              </li>
+            ))}
+            <li className="flex justify-between py-3">
+              <span>Cerraron sin contestar</span>
+              <span className="text-muted">{rescue.closed}</span>
+            </li>
+            <li className="flex justify-between py-3">
+              <span className="font-semibold">Escribieron a Choco por WhatsApp</span>
+              <span className="text-gold">{rescue.whatsapp}</span>
+            </li>
+          </ul>
+        )}
+      </section>
 
       <section className="mt-10">
         <h2 className="text-2xl font-bold">Últimas visitas</h2>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sendMetaEvent } from "@/lib/meta";
+import { notifyRescue, rescueCheck, sessionPurchased } from "@/lib/rescue";
 import { insertPageEvent } from "@/lib/visits";
 
 const names = new Set([
@@ -10,7 +11,15 @@ const names = new Set([
   "leave",
   "video_play",
   "video_progress",
+  "checkout_return",
+  "rescue_answer",
+  "rescue_close",
+  "whatsapp_click",
 ]);
+
+// Eventos cuyo texto corto (botón, respuesta del rescate) se guarda en la columna cta.
+const labeled = new Set(["cta_click", "rescue_answer", "whatsapp_click"]);
+const notified = new Set(["rescue_answer", "whatsapp_click"]);
 
 // Textos cortos que manda la página; se recortan por si alguien manda basura.
 function label(value: unknown): string | null {
@@ -47,6 +56,11 @@ export async function POST(request: Request) {
   const clientIp = forwarded || request.headers.get("x-real-ip") || undefined;
   const userAgent = request.headers.get("user-agent") || undefined;
 
+  const rescue = notified.has(name) ? await rescueCheck(sessionId, name) : null;
+  if (rescue && !rescue.valid) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   await insertPageEvent({
     session_id: sessionId,
     name,
@@ -57,7 +71,7 @@ export async function POST(request: Request) {
     fbc: body.fbc ?? null,
     fbp: body.fbp ?? null,
     utm_content: body.utmContent ?? null,
-    cta: name === "cta_click" ? label(body.cta) : null,
+    cta: labeled.has(name) ? label(body.cta) : null,
     source: label(body.source),
     device: label(body.device),
     event_id: body.eventId ?? null,
@@ -87,6 +101,15 @@ export async function POST(request: Request) {
       fbc: body.fbc,
       fbp: body.fbp,
     });
+  }
+
+  if (rescue?.notify) {
+    await notifyRescue(sessionId, name, label(body.cta));
+  }
+
+  // El rescate solo se muestra si la persona volvió sin haber comprado.
+  if (name === "checkout_return") {
+    return NextResponse.json({ ok: true, purchased: await sessionPurchased(sessionId) });
   }
 
   return NextResponse.json({ ok: true });

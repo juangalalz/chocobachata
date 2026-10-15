@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ForgetCheckout } from "@/components/checkout-rescue";
 import { offer } from "@/lib/offer";
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function GraciasPage() {
   return (
     <main className="mx-auto flex min-h-full max-w-lg flex-col justify-center px-5 py-20">
+      <ForgetCheckout />
       <p className="text-sm font-semibold tracking-[0.16em] text-gold uppercase">
         Pago confirmado
       </p>

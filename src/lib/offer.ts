@@ -4,6 +4,8 @@ export const offer = {
   previousPrice: "45",
   currency: "€",
   email: "chocobachata10@gmail.com",
+  // WhatsApp de Choco, con prefijo de país y sin "+".
+  whatsapp: "573114504359",
   socials: [
     { name: "Instagram", url: "https://www.instagram.com/chocobach_" },
     { name: "TikTok", url: "https://www.tiktok.com/@chocobach_" },

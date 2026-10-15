@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { offer } from "@/lib/offer";
+import { rememberCheckout } from "@/components/checkout-rescue";
 import { isInternal, sendVisit, visitContext } from "@/lib/visit-client";
 
 type BuyButtonProps = {
@@ -14,6 +15,18 @@ type BuyButtonProps = {
 
 export function BuyButton({ children, cta, className }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
+
+  // Al volver atrás desde el pago el navegador puede restaurar la página tal cual,
+  // con el botón todavía en "Abriendo el pago…".
+  useEffect(() => {
+    const reset = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setLoading(false);
+      }
+    };
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
+  }, []);
 
   return (
     <a
@@ -36,6 +49,7 @@ export function BuyButton({ children, cta, className }: BuyButtonProps) {
         const url = new URL(offer.checkoutUrl);
 
         sendVisit("cta_click", { eventId, cta });
+        rememberCheckout();
         if (!isInternal()) {
           window.fbq?.(
             "track",
