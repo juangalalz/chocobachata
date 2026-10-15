@@ -40,3 +40,27 @@ h2,
 h3 {
   font-family: var(--font-display), sans-serif;
 }
+
+/* Entrada del rescate: que se note que algo nuevo apareció al volver del pago. */
+@keyframes rescue-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rescue-pop {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rescue-backdrop {
+    animation: rescue-backdrop 250ms ease-out both;
+  }
+
+  .rescue-panel {
+    animation: rescue-pop 350ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 80ms both;
+  }
+}

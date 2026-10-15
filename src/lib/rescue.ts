@@ -9,6 +9,7 @@ const ANSWERS: Record<string, string> = {
   pago: "Tuve un problema al pagar",
   otra_forma: "Prefiero pagar de otra forma",
   duda: "Tengo una duda sobre el curso",
+  directo: "no contestó, fue directo a WhatsApp",
 };
 
 const ADS: Record<string, string> = { video1: "Video 1", video2: "Video 2", carrusel: "Carrusel" };

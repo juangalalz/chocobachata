@@ -130,24 +130,110 @@ export function CheckoutRescue() {
   }
 
   function writeToChoco() {
-    sendVisit("whatsapp_click", { cta: answer?.key ?? "rescate" });
-    openWhatsApp(offer.whatsapp, answer?.message ?? answers[3].message, deviceType());
+    sendVisit("whatsapp_click", { cta: answer?.key ?? "directo" });
+    openWhatsApp(offer.whatsapp, answer?.message ?? directMessage, deviceType());
   }
 
   return (
-    <div
-      role="dialog"
-      aria-labelledby="rescate-titulo"
-      className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96 sm:px-0"
+    <RescueDialog onClose={close} title={answer ? "¡Gracias por contarnos!" : "¿Algo te frenó?"}>
+      {answer ? (
+        <>
+          <p className="mt-2 text-sm leading-6 text-muted">{answer.reply}</p>
+          <WhatsAppButton onClick={writeToChoco} />
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-muted">Un toque y nos ayudas a mejorar.</p>
+          <ul className="mt-4 grid gap-2">
+            {answers.map((item) => (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  onClick={() => choose(item)}
+                  className="w-full rounded-md border border-white/10 px-4 py-3 text-left text-sm font-semibold transition hover:border-gold/60 hover:text-gold"
+                >
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 border-t border-white/10 pt-4 text-center text-sm text-muted">
+            ¿Prefieres preguntarle a Choco?{" "}
+            <button
+              type="button"
+              onClick={writeToChoco}
+              className="font-semibold text-gold underline-offset-4 hover:underline"
+            >
+              Escríbele por WhatsApp
+            </button>
+          </p>
+        </>
+      )}
+    </RescueDialog>
+  );
+}
+
+const directMessage =
+  "¡Hola Choco! Estoy viendo el curso online de bachata y tengo una pregunta antes de comprar.";
+
+function WhatsAppButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-gold text-base font-semibold text-[#1a1408] transition hover:bg-gold-soft"
     >
-      <div className="rounded-2xl border border-gold/30 bg-card p-5 shadow-2xl shadow-black/60">
+      Escribir a Choco por WhatsApp
+    </button>
+  );
+}
+
+// Modal centrado en ordenador y hoja desde abajo en móvil. El fondo oscurecido
+// bloquea la página: hay que contestar o cerrar para seguir.
+function RescueDialog({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className="rescue-backdrop absolute inset-0 bg-black/70 backdrop-blur-sm"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rescate-titulo"
+        className="rescue-panel relative w-full rounded-t-2xl border border-gold/40 bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/70 sm:max-w-md sm:rounded-2xl sm:pb-6"
+      >
         <div className="flex items-start justify-between gap-4">
-          <h2 id="rescate-titulo" className="text-lg font-bold">
-            {answer ? "¡Gracias por contarnos!" : "¿Algo te frenó?"}
+          <h2 id="rescate-titulo" className="text-xl font-bold">
+            {title}
           </h2>
           <button
             type="button"
-            onClick={close}
+            onClick={onClose}
             aria-label="Cerrar"
             className="-mt-1 -mr-1 rounded-full p-1 text-muted transition hover:text-ink"
           >
@@ -156,36 +242,7 @@ export function CheckoutRescue() {
             </svg>
           </button>
         </div>
-
-        {answer ? (
-          <>
-            <p className="mt-2 text-sm leading-6 text-muted">{answer.reply}</p>
-            <button
-              type="button"
-              onClick={writeToChoco}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-gold text-base font-semibold text-[#1a1408] transition hover:bg-gold-soft"
-            >
-              Escribir a Choco por WhatsApp
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="mt-1 text-sm text-muted">Un toque y nos ayudas a mejorar.</p>
-            <ul className="mt-4 grid gap-2">
-              {answers.map((item) => (
-                <li key={item.key}>
-                  <button
-                    type="button"
-                    onClick={() => choose(item)}
-                    className="w-full rounded-md border border-white/10 px-4 py-3 text-left text-sm font-semibold transition hover:border-gold/60 hover:text-gold"
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+        {children}
       </div>
     </div>
   );
