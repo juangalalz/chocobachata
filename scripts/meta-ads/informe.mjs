@@ -73,4 +73,5 @@ const totalSales = rows.reduce((sum, row) => sum + row.ventas, 0);
 console.log(`\nÚltimos ${days} días · campaña ${campaign}\n`);
 console.table(rows);
 console.log(`Gasto total: ${cop(totalSpend)} · Ventas: ${totalSales} · Coste por venta: ${totalSales ? cop(totalSpend / totalSales) : "–"}`);
-console.log("Equilibrio ≈ 100.000 COP por venta · Objetivo < 40.000 COP\n");
+// Lo que llega a Colombia por venta, tras IVA, Lemon y cambio a dólares (estimación del dueño).
+console.log("Equilibrio ≈ 78.000 COP por venta (lo que llega neto) · Objetivo < 50.000 COP\n");
