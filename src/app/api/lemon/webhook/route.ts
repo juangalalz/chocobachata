@@ -117,6 +117,8 @@ export async function POST(request: Request) {
     sessionId,
     amountCents: attributes.total,
     currency: attributes.currency,
+    email,
+    fullName: attributes.user_name,
   });
   return NextResponse.json({ ok: true, memberId });
 }

@@ -13,7 +13,7 @@ let backend: ReturnType<typeof createBackend>;
 function paid(id = "7001", sessionId = "s-1") {
   const raw = JSON.stringify({
     meta: { event_name: "order_created", custom_data: { session_id: sessionId } },
-    data: { id, attributes: { status: "paid", user_email: "ana@example.com", total: 2999, currency: "EUR" } },
+    data: { id, attributes: { status: "paid", user_email: "ana@example.com", user_name: "Ana López", total: 2999, currency: "EUR" } },
   });
   return new Request("https://curso.chocobachata.com/api/lemon/webhook", {
     method: "POST",
@@ -51,6 +51,7 @@ describe("aviso de venta por Telegram", () => {
     expect(backend.sales.map((sale) => sale.chatId)).toEqual(["chat", "hermana"]);
     const text = backend.sales[0].text;
     expect(text).toContain("29,99 €");
+    expect(text).toContain("👤 Ana López · ana@example.com");
     expect(text).toContain("Anuncio: Video 1");
     expect(text).toContain("Móvil · Instagram");
     expect(text).toContain("Comprar bajo el video (mitad)");

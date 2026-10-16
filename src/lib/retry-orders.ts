@@ -133,6 +133,8 @@ export async function retryOrder(order: StuckOrder): Promise<"fixed" | "failed">
         sessionId: order.session_id,
         amountCents: order.amount_cents,
         currency: order.currency,
+        email: order.email,
+        fullName: order.full_name,
       });
     }
     return "fixed";

@@ -39,10 +39,15 @@ function amount(cents?: number | null, currency?: string | null): string {
     .replace(/\s/g, " ");
 }
 
-export function saleMessage(
-  sale: { amountCents?: number | null; currency?: string | null; paidAt?: Date },
-  journey: SessionJourney,
-): string {
+type Sale = {
+  amountCents?: number | null;
+  currency?: string | null;
+  email?: string | null;
+  fullName?: string | null;
+  paidAt?: Date;
+};
+
+export function saleMessage(sale: Sale, journey: SessionJourney): string {
   const ad = journey.ad ? (ADS[journey.ad] ?? journey.ad) : "ninguno (orgánico)";
   const button = journey.cta ? (BUTTONS[journey.cta] ?? journey.cta) : "no registrado";
   const device = journey.device ? (DEVICES[journey.device] ?? journey.device) : "desconocido";
@@ -57,6 +62,9 @@ export function saleMessage(
 
   return [
     `💃 ¡Venta! ${offer.name} · ${amount(sale.amountCents, sale.currency)}`,
+    ...(sale.email || sale.fullName
+      ? [`👤 ${[sale.fullName?.trim(), sale.email].filter(Boolean).join(" · ")}`]
+      : []),
     `📣 Anuncio: ${ad}`,
     `📱 ${device} · ${source}`,
     `👆 Botón: ${button}`,
@@ -88,12 +96,9 @@ async function claimNotice(orderId: string): Promise<boolean> {
 }
 
 // Nunca lanza: un aviso que falla no debe tumbar la entrega del curso.
-export async function announceSale(sale: {
-  orderId: string;
-  sessionId?: string | null;
-  amountCents?: number | null;
-  currency?: string | null;
-}): Promise<void> {
+export async function announceSale(
+  sale: Sale & { orderId: string; sessionId?: string | null },
+): Promise<void> {
   try {
     if (!(await claimNotice(sale.orderId))) {
       return;
