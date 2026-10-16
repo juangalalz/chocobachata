@@ -9,7 +9,8 @@
   "utmCampaign": "ventas_es",
   "campaign": {
     "name": "VENTAS_ES_CursoCompleto_Oct2026",
-    "dailyBudget": 50000
+    "dailyBudget": 50000,
+    "spendCap": 300000
   },
   "adSet": {
     "name": "ES_25+_Advantage_Purchase",
@@ -19,11 +20,7 @@
       "countries": [
         "ES"
       ],
-      "ageMin": 25,
-      "suggestedAges": [
-        28,
-        55
-      ],
+      "ageMin": 35,
       "interests": [
         [
           "6003445007740",
@@ -57,7 +54,8 @@
           "6003003434573",
           "Música latinoamericana"
         ]
-      ]
+      ],
+      "advantageAudience": false
     }
   },
   "ads": [

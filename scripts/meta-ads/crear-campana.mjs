@@ -143,6 +143,8 @@ async function main() {
       special_ad_categories: [],
       daily_budget: config.campaign.dailyBudget,
       bid_strategy: config.campaign.bidStrategy ?? "LOWEST_COST_WITHOUT_CAP",
+      // Tope total: Meta para sola al llegar, aunque nadie esté mirando.
+      ...(config.campaign.spendCap ? { spend_cap: config.campaign.spendCap } : {}),
     });
     if (validate) {
       console.log("✓ Campaña válida");
@@ -174,7 +176,9 @@ async function main() {
         ...(audience.interests?.length
           ? { flexible_spec: [{ interests: audience.interests.map(([id, name]) => ({ id, name })) }] }
           : {}),
-        targeting_automation: { advantage_audience: 1 },
+        // Con Advantage+ Meta solo acepta la edad como sugerencia y nunca por encima de 25.
+        // Sin él, edad e intereses son obligatorios (en oct 2026 los menores de 35 no respondían).
+        targeting_automation: { advantage_audience: audience.advantageAudience === false ? 0 : 1 },
       },
       // Obligatorio para anunciarse en la UE (Ley de Servicios Digitales).
       dsa_beneficiary: config.adSet.dsaName,
