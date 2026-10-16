@@ -28,6 +28,7 @@ export function setTestEnv() {
     TELEGRAM_CHAT_ID: "chat",
     TELEGRAM_SALES_CHAT_IDS: "chat, hermana",
     CRON_SECRET: "cron-secret",
+    WIX_ENROLL_GAP_MS: "0",
   });
   delete process.env.META_TEST_EVENT_CODE;
 }

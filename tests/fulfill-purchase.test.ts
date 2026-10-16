@@ -30,7 +30,8 @@ describe("fulfillPaidOrder", () => {
     const memberId = await fulfillPaidOrder(order);
 
     expect(memberId).toBe("m-1");
-    expect(backend.participants.map((p) => p.programId)).toEqual(PROGRAMS);
+    // Del último nivel al primero: Wix muestra arriba el último al que se unió.
+    expect(backend.participants.map((p) => p.programId)).toEqual([...PROGRAMS].reverse());
     expect(backend.callsTo("/labels")).toHaveLength(1);
     expect(backend.callsTo("send-set-password-email")).toHaveLength(1);
 

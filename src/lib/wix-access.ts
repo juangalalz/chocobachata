@@ -127,8 +127,21 @@ function programIds(): string[] {
     .filter(Boolean);
 }
 
+// "Mis programas" de Wix pone arriba el último programa al que se unió el alumno.
+// Inscribimos del último nivel al primero, con un segundo entre cada uno, para que
+// el Nivel 1 quede el primero de la lista y el alumno empiece desde cero.
+// (En las pruebas se pone a 0 con WIX_ENROLL_GAP_MS.)
+function enrollGapMs(): number {
+  return Number(process.env.WIX_ENROLL_GAP_MS ?? 1000);
+}
+
 export async function enrollInPrograms(memberId: string): Promise<void> {
-  for (const programId of programIds()) {
+  const ids = programIds().reverse();
+  for (const [index, programId] of ids.entries()) {
+    if (index > 0) {
+      await new Promise((done) => setTimeout(done, enrollGapMs()));
+    }
+
     const enrolled = await wix(
       "https://www.wixapis.com/online-programs/v3/participants",
       {
