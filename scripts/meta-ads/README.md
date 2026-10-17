@@ -28,7 +28,8 @@ Tipos de anuncio:
 ## Día a día
 
 - `node scripts/meta-ads/informe.mjs --dias 3`: gasto, clics y coste por venta de cada anuncio,
-  con las ventas reales de la web (no las que se atribuye Meta).
+  con las ventas reales de la web (no las que se atribuye Meta). Al final, venta a venta: cuánto
+  se gastó entre una y la siguiente, para ver si el coste por venta baja.
 - `node scripts/meta-ads/estado.mjs pausar <id>` · `activar <id...>` · `presupuesto <id> <COP>`.
 
 ## Cosas de Meta que costó descubrir

@@ -75,3 +75,50 @@ console.table(rows);
 console.log(`Gasto total: ${cop(totalSpend)} · Ventas: ${totalSales} · Coste por venta: ${totalSales ? cop(totalSpend / totalSales) : "–"}`);
 // Lo que llega a Colombia por venta, tras IVA, Lemon y cambio a dólares (estimación del dueño).
 console.log("Equilibrio ≈ 78.000 COP por venta (lo que llega neto) · Objetivo < 50.000 COP\n");
+
+// ¿Cada venta sale más barata que la anterior? Gasto de Meta hora a hora desde el inicio,
+// cortado en el momento de cada venta.
+const { account_id: accountId } = await meta.get(campaign, { fields: "account_id" });
+const { timezone_offset_hours_utc: offset } = await meta.get(`act_${accountId}`, {
+  fields: "timezone_offset_hours_utc",
+});
+const hourly = await meta.get(`${campaign}/insights`, {
+  fields: "spend",
+  time_increment: 1,
+  breakdowns: "hourly_stats_aggregated_by_advertiser_time_zone",
+  date_preset: "maximum",
+  limit: 5000,
+});
+const zone = `${offset < 0 ? "-" : "+"}${String(Math.abs(offset)).padStart(2, "0")}:00`;
+const spendByHour = hourly.data.map((row) => ({
+  at: Date.parse(`${row.date_start}T${row.hourly_stats_aggregated_by_advertiser_time_zone.slice(0, 8)}${zone}`),
+  spend: Number(row.spend),
+}));
+const spentBefore = (time) =>
+  spendByHour.filter((row) => row.at <= time).reduce((sum, row) => sum + row.spend, 0);
+
+const ordersResponse = await fetch(
+  `${env.SUPABASE_URL}/rest/v1/orders?refund_requested_at=is.null&select=created_at&order=created_at.asc`,
+  { headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` } },
+);
+const sales = (await ordersResponse.json()).map((order) => Date.parse(order.created_at));
+const day = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short" });
+
+let previous = 0;
+const trend = sales.map((time, index) => {
+  const total = spentBefore(time);
+  const row = {
+    venta: index + 1,
+    "día (España)": day.format(new Date(time)),
+    "gasto acumulado": cop(total),
+    "gasto desde la anterior": cop(total - previous),
+    "coste medio": cop(total / (index + 1)),
+  };
+  previous = total;
+  return row;
+});
+const totalEver = spendByHour.reduce((sum, row) => sum + row.spend, 0);
+
+console.log("Venta a venta, desde el inicio de la campaña:");
+if (trend.length) console.table(trend);
+console.log(`Desde la última venta van ${cop(totalEver - previous)} sin vender (gasto total ${cop(totalEver)}).\n`);
