@@ -114,22 +114,29 @@ export type SessionJourney = {
   visits?: { ad?: string; at: string }[];
 };
 
-async function visitorHistory(visitorId: string): Promise<{ ad?: string; at: string }[]> {
-  const url = restUrl(
-    `page_events?visitor_id=eq.${encodeURIComponent(visitorId)}` +
-      "&select=session_id,utm_content,created_at&order=created_at.asc&limit=500",
-  );
-  if (!url) {
-    return [];
+// Visitas del mismo navegador: por nuestro identificador y, para las visitas anteriores
+// a él, por la cookie _fbp de Meta (también fija por navegador, pero no siempre está).
+async function visitorHistory(ids: { visitorId?: string; fbp?: string }): Promise<{ ad?: string; at: string }[]> {
+  const filters = [
+    ...(ids.visitorId ? [`visitor_id=eq.${encodeURIComponent(ids.visitorId)}`] : []),
+    ...(ids.fbp ? [`fbp=eq.${encodeURIComponent(ids.fbp)}`] : []),
+  ];
+  const rows: Pick<PageEventRow, "session_id" | "utm_content" | "created_at">[] = [];
+
+  for (const filter of filters) {
+    const url = restUrl(`page_events?${filter}&select=session_id,utm_content,created_at&order=created_at.asc&limit=500`);
+    if (!url) {
+      return [];
+    }
+
+    const response = await fetch(url, { headers: headers(), cache: "no-store" });
+    if (!response.ok) {
+      console.error("[visitas] No se leyó el historial", response.status);
+      return [];
+    }
+    rows.push(...((await response.json()) as typeof rows));
   }
 
-  const response = await fetch(url, { headers: headers(), cache: "no-store" });
-  if (!response.ok) {
-    console.error("[visitas] No se leyó el historial", response.status);
-    return [];
-  }
-
-  const rows = (await response.json()) as Pick<PageEventRow, "session_id" | "utm_content" | "created_at">[];
   const sessions = new Map<string, { ad?: string; at: string }>();
   for (const row of rows.sort((a, b) => a.created_at.localeCompare(b.created_at))) {
     const visit = sessions.get(row.session_id) ?? { at: row.created_at };
@@ -144,7 +151,7 @@ async function visitorHistory(visitorId: string): Promise<{ ad?: string; at: str
 export async function findSessionJourney(sessionId: string): Promise<SessionJourney> {
   const url = restUrl(
     `page_events?session_id=eq.${encodeURIComponent(sessionId)}` +
-      "&select=name,visitor_id,utm_content,source,device,cta,created_at&order=created_at.asc&limit=200",
+      "&select=name,visitor_id,fbp,utm_content,source,device,cta,created_at&order=created_at.asc&limit=200",
   );
 
   if (!url) {
@@ -159,14 +166,15 @@ export async function findSessionJourney(sessionId: string): Promise<SessionJour
 
   const rows = (await response.json()) as Pick<
     PageEventRow,
-    "name" | "visitor_id" | "utm_content" | "source" | "device" | "cta" | "created_at"
+    "name" | "visitor_id" | "fbp" | "utm_content" | "source" | "device" | "cta" | "created_at"
   >[];
   if (rows.length === 0) {
     return {};
   }
 
   const first = rows[0];
-  const visitor = rows.find((row) => row.visitor_id)?.visitor_id;
+  const visitorId = rows.find((row) => row.visitor_id)?.visitor_id ?? undefined;
+  const fbp = rows.find((row) => row.fbp)?.fbp ?? undefined;
   const click = rows.filter((row) => row.name === "cta_click").at(-1);
   const minutes = click
     ? Math.round((Date.parse(click.created_at) - Date.parse(first.created_at)) / 60000)
@@ -178,7 +186,7 @@ export async function findSessionJourney(sessionId: string): Promise<SessionJour
     device: first.device ?? undefined,
     cta: click?.cta ?? undefined,
     minutes: Number.isFinite(minutes) ? minutes : undefined,
-    visits: visitor ? await visitorHistory(visitor) : undefined,
+    visits: visitorId || fbp ? await visitorHistory({ visitorId, fbp }) : undefined,
   };
 }
 

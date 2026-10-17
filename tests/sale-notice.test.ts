@@ -71,6 +71,18 @@ describe("aviso de venta por Telegram", () => {
     expect(backend.sales[0].text).toMatch(/🔁 Compró en su visita 2, \d días después de la primera: Video 2 \(12 oct\) → Carrusel de fotos \(14 oct\)/);
   });
 
+  it("une las visitas de antes del identificador por la cookie _fbp", async () => {
+    backend.pageEvents.push(
+      { session_id: "antes", visitor_id: null, fbp: "fb.1.1", name: "page_view", utm_content: "carrusel", created_at: "2026-10-12T20:00:00.000Z" },
+    );
+    visit("page_view", 0, { utm_content: "video1", visitor_id: "v-1", fbp: "fb.1.1" });
+
+    await POST(paid());
+
+    expect(backend.sales[0].text).toContain("🔁 Compró en su visita 2");
+    expect(backend.sales[0].text).toContain("Carrusel de fotos (12 oct) → Video 1 (14 oct)");
+  });
+
   it("dice si compró en la primera visita", async () => {
     visit("page_view", 0, { visitor_id: "v-1" });
 
