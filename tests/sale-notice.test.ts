@@ -59,6 +59,26 @@ describe("aviso de venta por Telegram", () => {
     expect(backend.telegram).toHaveLength(0);
   });
 
+  it("cuenta las visitas anteriores del mismo navegador y desde qué anuncio", async () => {
+    backend.pageEvents.push(
+      { session_id: "antes", visitor_id: "v-1", name: "page_view", utm_content: "video2", created_at: "2026-10-12T20:00:00.000Z" },
+      { session_id: "otra-persona", visitor_id: "v-2", name: "page_view", utm_content: "video1", created_at: "2026-10-13T20:00:00.000Z" },
+    );
+    visit("page_view", 0, { utm_content: "carrusel", visitor_id: "v-1" });
+
+    await POST(paid());
+
+    expect(backend.sales[0].text).toMatch(/🔁 Compró en su visita 2, \d días después de la primera: Video 2 \(12 oct\) → Carrusel de fotos \(14 oct\)/);
+  });
+
+  it("dice si compró en la primera visita", async () => {
+    visit("page_view", 0, { visitor_id: "v-1" });
+
+    await POST(paid());
+
+    expect(backend.sales[0].text).toContain("🔁 Compró en su primera visita");
+  });
+
   it("no repite el aviso si Lemon manda el mismo pedido otra vez", async () => {
     visit("page_view", 0);
 

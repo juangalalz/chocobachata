@@ -1,6 +1,7 @@
 "use client";
 
 const storageKey = "choco_session";
+const visitorKey = "choco_visitor";
 const internalKey = "choco_interno";
 
 export type VisitName =
@@ -17,6 +18,7 @@ export type VisitName =
 
 export type VisitContext = {
   sessionId: string;
+  visitorId: string;
   fbclid: string;
   fbc: string;
   fbp: string;
@@ -81,6 +83,20 @@ function cookie(name: string): string {
   return match ? decodeURIComponent(match[1]) : "";
 }
 
+// Fijo por navegador: el mismo en cada visita, venga del anuncio que venga.
+function visitorId(fallback: string): string {
+  try {
+    let id = localStorage.getItem(visitorKey) ?? "";
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(visitorKey, id);
+    }
+    return id;
+  } catch {
+    return fallback;
+  }
+}
+
 export function visitContext(): VisitContext {
   let sessionId = sessionStorage.getItem(storageKey) ?? "";
 
@@ -98,6 +114,7 @@ export function visitContext(): VisitContext {
 
   return {
     sessionId,
+    visitorId: visitorId(sessionId),
     fbclid,
     fbc,
     fbp,

@@ -3,6 +3,7 @@ import "server-only";
 export type PageEventRow = {
   id: string;
   session_id: string;
+  visitor_id: string | null;
   name: string;
   depth: number | null;
   seconds: number | null;
@@ -109,14 +110,41 @@ export type SessionJourney = {
   device?: string;
   cta?: string;
   minutes?: number;
+  // Todas las visitas de ese navegador hasta la compra, de la primera a la última.
+  visits?: { ad?: string; at: string }[];
 };
+
+async function visitorHistory(visitorId: string): Promise<{ ad?: string; at: string }[]> {
+  const url = restUrl(
+    `page_events?visitor_id=eq.${encodeURIComponent(visitorId)}` +
+      "&select=session_id,utm_content,created_at&order=created_at.asc&limit=500",
+  );
+  if (!url) {
+    return [];
+  }
+
+  const response = await fetch(url, { headers: headers(), cache: "no-store" });
+  if (!response.ok) {
+    console.error("[visitas] No se leyó el historial", response.status);
+    return [];
+  }
+
+  const rows = (await response.json()) as Pick<PageEventRow, "session_id" | "utm_content" | "created_at">[];
+  const sessions = new Map<string, { ad?: string; at: string }>();
+  for (const row of rows.sort((a, b) => a.created_at.localeCompare(b.created_at))) {
+    const visit = sessions.get(row.session_id) ?? { at: row.created_at };
+    visit.ad ??= row.utm_content ?? undefined;
+    sessions.set(row.session_id, visit);
+  }
+  return [...sessions.values()];
+}
 
 // De dónde vino quien compró: anuncio, origen y dispositivo de la primera visita,
 // y el último botón de Comprar que tocó.
 export async function findSessionJourney(sessionId: string): Promise<SessionJourney> {
   const url = restUrl(
     `page_events?session_id=eq.${encodeURIComponent(sessionId)}` +
-      "&select=name,utm_content,source,device,cta,created_at&order=created_at.asc&limit=200",
+      "&select=name,visitor_id,utm_content,source,device,cta,created_at&order=created_at.asc&limit=200",
   );
 
   if (!url) {
@@ -131,13 +159,14 @@ export async function findSessionJourney(sessionId: string): Promise<SessionJour
 
   const rows = (await response.json()) as Pick<
     PageEventRow,
-    "name" | "utm_content" | "source" | "device" | "cta" | "created_at"
+    "name" | "visitor_id" | "utm_content" | "source" | "device" | "cta" | "created_at"
   >[];
   if (rows.length === 0) {
     return {};
   }
 
   const first = rows[0];
+  const visitor = rows.find((row) => row.visitor_id)?.visitor_id;
   const click = rows.filter((row) => row.name === "cta_click").at(-1);
   const minutes = click
     ? Math.round((Date.parse(click.created_at) - Date.parse(first.created_at)) / 60000)
@@ -149,6 +178,7 @@ export async function findSessionJourney(sessionId: string): Promise<SessionJour
     device: first.device ?? undefined,
     cta: click?.cta ?? undefined,
     minutes: Number.isFinite(minutes) ? minutes : undefined,
+    visits: visitor ? await visitorHistory(visitor) : undefined,
   };
 }
 

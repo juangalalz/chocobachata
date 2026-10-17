@@ -28,6 +28,7 @@ function label(value: unknown): string | null {
 
 type EventBody = {
   sessionId?: string;
+  visitorId?: string;
   name?: string;
   depth?: number;
   seconds?: number;
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
 
   await insertPageEvent({
     session_id: sessionId,
+    visitor_id: label(body.visitorId),
     name,
     depth: typeof body.depth === "number" ? body.depth : null,
     seconds: typeof body.seconds === "number" ? body.seconds : null,

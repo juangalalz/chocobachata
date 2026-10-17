@@ -47,6 +47,22 @@ type Sale = {
   paidAt?: Date;
 };
 
+function visitsLine(visits: SessionJourney["visits"], paidAt: Date): string | null {
+  if (!visits?.length) {
+    return null;
+  }
+  if (visits.length === 1) {
+    return "🔁 Compró en su primera visita";
+  }
+
+  const day = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short" });
+  const days = Math.round((paidAt.getTime() - Date.parse(visits[0].at)) / 86400000);
+  const path = visits
+    .map((visit) => `${visit.ad ? (ADS[visit.ad] ?? visit.ad) : "sin anuncio"} (${day.format(new Date(visit.at))})`)
+    .join(" → ");
+  return `🔁 Compró en su visita ${visits.length}${days > 0 ? `, ${days} días después de la primera` : ""}: ${path}`;
+}
+
 export function saleMessage(sale: Sale, journey: SessionJourney): string {
   const ad = journey.ad ? (ADS[journey.ad] ?? journey.ad) : "ninguno (orgánico)";
   const button = journey.cta ? (BUTTONS[journey.cta] ?? journey.cta) : "no registrado";
@@ -59,6 +75,7 @@ export function saleMessage(sale: Sale, journey: SessionJourney): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(sale.paidAt ?? new Date());
+  const visits = visitsLine(journey.visits, sale.paidAt ?? new Date());
 
   return [
     `💃 ¡Venta! ${offer.name} · ${amount(sale.amountCents, sale.currency)}`,
@@ -69,6 +86,7 @@ export function saleMessage(sale: Sale, journey: SessionJourney): string {
     `📱 ${device} · ${source}`,
     `👆 Botón: ${button}`,
     ...(journey.minutes != null ? [`⏱️ Tardó ${journey.minutes} min desde que entró hasta comprar`] : []),
+    ...(visits ? [visits] : []),
     `🕐 ${when} (hora de España)`,
   ].join("\n");
 }
