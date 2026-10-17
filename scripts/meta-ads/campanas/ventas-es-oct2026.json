@@ -10,7 +10,7 @@
   "campaign": {
     "name": "VENTAS_ES_CursoCompleto_Oct2026",
     "dailyBudget": 50000,
-    "spendCap": 400000
+    "spendCap": 500000
   },
   "adSet": {
     "name": "ES_25+_Advantage_Purchase",
