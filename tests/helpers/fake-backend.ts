@@ -45,6 +45,8 @@ function filterRows(rows: Row[], params: URLSearchParams): Row[] {
       if (op === "eq" && actual !== expected) return false;
       if (op === "neq" && actual === expected) return false;
       if (op === "is" && expected === "null" && row[key] != null) return false;
+      if (op === "lt" && !(actual < expected)) return false;
+      if (op === "gt" && !(actual > expected)) return false;
     }
     return true;
   });
@@ -54,6 +56,7 @@ export function createBackend() {
   const orders = new Map<string, Row>();
   const pageEvents: Row[] = [];
   const members = new Map<string, string>(); // email -> id
+  const logins = new Map<string, string>(); // memberId -> último inicio de sesión
   const participants: Participant[] = [];
   const calls: { method: string; url: string; body?: unknown }[] = [];
   // Avisos de error (solo al chat "chat") y mensajes de venta (a cada chat de ventas).
@@ -121,6 +124,10 @@ export function createBackend() {
         return json({ members: id ? [{ id }] : [] });
       }
       if (path.endsWith("/approve")) return json({ member: { status: "APPROVED" } });
+      if (path.startsWith("/contacts/v4/contacts/") && method === "GET") {
+        const id = path.split("/").pop() ?? "";
+        return json({ contact: { memberInfo: { sessionInfo: logins.has(id) ? { lastWebLogin: logins.get(id) } : {} } } });
+      }
       if (path.endsWith("/labels")) return json({});
       if (path === "/members/v1/auth/members/send-set-password-email") return json({ accepted: true });
       if (path === "/online-programs/v3/participants" && method === "POST") {
@@ -174,6 +181,7 @@ export function createBackend() {
     orders,
     pageEvents,
     members,
+    logins,
     participants,
     calls,
     telegram,

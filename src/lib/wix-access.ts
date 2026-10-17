@@ -91,6 +91,23 @@ export async function sendWelcomeEmail(memberId: string): Promise<void> {
   }
 }
 
+// Último inicio de sesión del alumno en la web de Wix. null si nunca ha entrado;
+// undefined si Wix no respondió (para no avisar de más por un fallo de Wix).
+export async function lastLogin(memberId: string): Promise<string | null | undefined> {
+  const response = await fetch(
+    `https://www.wixapis.com/contacts/v4/contacts/${memberId}?fieldsets=FULL`,
+    { headers: wixHeaders() },
+  );
+  if (!response.ok) {
+    return undefined;
+  }
+
+  const data = (await response.json()) as {
+    contact?: { memberInfo?: { sessionInfo?: { lastWebLogin?: string } } };
+  };
+  return data.contact?.memberInfo?.sessionInfo?.lastWebLogin ?? null;
+}
+
 export async function sendAccessEmail(email: string): Promise<void> {
   const sent = await wix<{ accepted?: boolean }>(
     "https://www.wixapis.com/members/v1/auth/members/send-set-password-email",

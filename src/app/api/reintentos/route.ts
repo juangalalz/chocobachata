@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkFirstLogins } from "@/lib/login-check";
 import { retryStuckOrders } from "@/lib/retry-orders";
 
 // Lo llama pg_cron cada 10 minutos (supabase/retries.sql).
@@ -13,5 +14,7 @@ export async function POST(request: Request) {
   }
 
   const result = await retryStuckOrders();
-  return NextResponse.json({ ok: true, ...result });
+  // De paso, avisa de quien compró hace un día y todavía no ha entrado al curso.
+  const logins = await checkFirstLogins();
+  return NextResponse.json({ ok: true, ...result, logins });
 }
