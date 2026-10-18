@@ -21,6 +21,10 @@ const names = new Set([
 const labeled = new Set(["cta_click", "rescue_answer", "whatsapp_click"]);
 const notified = new Set(["rescue_answer", "whatsapp_click"]);
 
+// Revisores de anuncios de Meta y otros robots: abren la página (y hasta tocan Comprar)
+// pero no son personas.
+const robots = /meta-externalads|facebookexternalhit|facebot|bot\b|crawler|spider|HeadlessChrome/i;
+
 // Textos cortos que manda la página; se recortan por si alguien manda basura.
 function label(value: unknown): string | null {
   return typeof value === "string" && value ? value.slice(0, 40) : null;
@@ -56,6 +60,9 @@ export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const clientIp = forwarded || request.headers.get("x-real-ip") || undefined;
   const userAgent = request.headers.get("user-agent") || undefined;
+  if (userAgent && robots.test(userAgent)) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
 
   const rescue = notified.has(name) ? await rescueCheck(sessionId, name) : null;
   if (rescue && !rescue.valid) {

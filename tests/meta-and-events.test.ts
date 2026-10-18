@@ -49,12 +49,12 @@ describe("sendMetaEvent", () => {
   });
 });
 
-function visit(body: Record<string, unknown>) {
+function visit(body: Record<string, unknown>, userAgent = "Instagram 350") {
   return events(
     new Request("https://curso.chocobachata.com/api/events", {
       method: "POST",
       body: JSON.stringify(body),
-      headers: { "x-forwarded-for": "5.6.7.8, 10.0.0.1", "user-agent": "Instagram 350" },
+      headers: { "x-forwarded-for": "5.6.7.8, 10.0.0.1", "user-agent": userAgent },
     }),
   );
 }
@@ -63,6 +63,14 @@ describe("/api/events", () => {
   it("rechaza eventos desconocidos o sin sesión", async () => {
     expect((await visit({ name: "hack", sessionId: "s" })).status).toBe(400);
     expect((await visit({ name: "page_view" })).status).toBe(400);
+  });
+
+  it("ignora al revisor de anuncios de Meta y a otros robots", async () => {
+    const robot = "meta-externalads/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)";
+    await visit({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "oferta" }, robot);
+
+    expect(backend.callsTo(`${SUPABASE}/rest/v1/page_events`)).toHaveLength(0);
+    expect(backend.metaEvents).toHaveLength(0);
   });
 
   it("guarda IP, navegador y botón solo en el clic de Comprar", async () => {
