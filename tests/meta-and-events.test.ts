@@ -73,13 +73,13 @@ describe("/api/events", () => {
     expect(backend.metaEvents).toHaveLength(0);
   });
 
-  it("guarda IP, navegador y botón solo en el clic de Comprar", async () => {
+  it("guarda IP y botón solo en el clic de Comprar, y el navegador siempre", async () => {
     await visit({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "barra", source: "instagram", device: "movil" });
     await visit({ name: "scroll", sessionId: "s", depth: 50, cta: "barra", source: "instagram" });
 
     const inserts = backend.callsTo(`${SUPABASE}/rest/v1/page_events`).map((call) => call.body as Record<string, unknown>);
     expect(inserts[0]).toMatchObject({ client_ip: "5.6.7.8", user_agent: "Instagram 350", cta: "barra", source: "instagram" });
-    expect(inserts[1]).toMatchObject({ client_ip: null, user_agent: null, cta: null, depth: 50 });
+    expect(inserts[1]).toMatchObject({ client_ip: null, user_agent: "Instagram 350", cta: null, depth: 50 });
     expect(backend.metaEvents.map((event) => event.event_name)).toEqual(["InitiateCheckout"]);
   });
 

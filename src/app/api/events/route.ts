@@ -85,7 +85,8 @@ export async function POST(request: Request) {
     device: label(body.device),
     event_id: body.eventId ?? null,
     client_ip: name === "cta_click" ? (clientIp ?? null) : null,
-    user_agent: name === "cta_click" ? (userAgent ?? null) : null,
+    // El navegador en cada evento, para poder reconocer robots nuevos; la IP solo en el clic.
+    user_agent: userAgent?.slice(0, 300) ?? null,
   });
 
   if (name === "page_view" && body.eventId) {
