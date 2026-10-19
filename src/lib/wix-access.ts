@@ -91,22 +91,6 @@ export async function sendWelcomeEmail(memberId: string): Promise<void> {
   }
 }
 
-// Último inicio de sesión del alumno en la web de Wix. null si nunca ha entrado;
-// undefined si Wix no respondió (para no avisar de más por un fallo de Wix).
-export async function lastLogin(memberId: string): Promise<string | null | undefined> {
-  const response = await fetch(
-    `https://www.wixapis.com/contacts/v4/contacts/${memberId}?fieldsets=FULL`,
-    { headers: wixHeaders() },
-  );
-  if (!response.ok) {
-    return undefined;
-  }
-
-  const data = (await response.json()) as {
-    contact?: { memberInfo?: { sessionInfo?: { lastWebLogin?: string } } };
-  };
-  return data.contact?.memberInfo?.sessionInfo?.lastWebLogin ?? null;
-}
 
 export async function sendAccessEmail(email: string): Promise<void> {
   const sent = await wix<{ accepted?: boolean }>(
@@ -184,8 +168,48 @@ type Participant = {
   id: string;
   programId: string;
   enrollmentStatus?: string;
+  progressStatus?: string;
   enrollmentInfo?: { pricingType?: string };
 };
+
+export type MemberActivity = {
+  lastLogin: string | null;
+  // Pasa a true cuando el alumno abre el enlace del correo para crear la contraseña.
+  emailVerified: boolean;
+  // Si empezó (o terminó) alguno de los tres niveles.
+  started: boolean;
+};
+
+// Lo que hizo el alumno en Wix desde que lo inscribimos. undefined si Wix no respondió
+// (para no avisar de más por un fallo de Wix).
+export async function memberActivity(memberId: string): Promise<MemberActivity | undefined> {
+  const response = await fetch(
+    `https://www.wixapis.com/contacts/v4/contacts/${memberId}?fieldsets=FULL`,
+    { headers: wixHeaders() },
+  );
+  const found = await wix<{ participants?: Participant[] }>(
+    "https://www.wixapis.com/online-programs/v3/participants/query",
+    { query: { filter: { memberId: { $eq: memberId } }, cursorPaging: { limit: 100 } } },
+  );
+  if (!response.ok || !found.ok) {
+    return undefined;
+  }
+
+  const data = (await response.json()) as {
+    contact?: { memberInfo?: { emailVerified?: boolean; sessionInfo?: { lastWebLogin?: string } } };
+  };
+  const ids = new Set(programIds());
+  return {
+    lastLogin: data.contact?.memberInfo?.sessionInfo?.lastWebLogin ?? null,
+    emailVerified: data.contact?.memberInfo?.emailVerified === true,
+    started: (found.data.participants ?? []).some(
+      (participant) =>
+        ids.has(participant.programId) &&
+        participant.progressStatus != null &&
+        participant.progressStatus !== "NOT_STARTED",
+    ),
+  };
+}
 
 // Quita los tres niveles que inscribió la web. Las inscripciones que el alumno
 // haya pagado directamente en Wix no se tocan.

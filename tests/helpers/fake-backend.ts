@@ -8,6 +8,7 @@ export type Participant = {
   memberId: string;
   programId: string;
   enrollmentStatus: string;
+  progressStatus?: string;
   enrollmentInfo: { pricingType: string };
 };
 
@@ -57,6 +58,7 @@ export function createBackend() {
   const pageEvents: Row[] = [];
   const members = new Map<string, string>(); // email -> id
   const logins = new Map<string, string>(); // memberId -> último inicio de sesión
+  const verified = new Set<string>(); // memberId que abrieron el correo de la contraseña
   const participants: Participant[] = [];
   const calls: { method: string; url: string; body?: unknown }[] = [];
   // Avisos de error (solo al chat "chat") y mensajes de venta (a cada chat de ventas).
@@ -126,7 +128,14 @@ export function createBackend() {
       if (path.endsWith("/approve")) return json({ member: { status: "APPROVED" } });
       if (path.startsWith("/contacts/v4/contacts/") && method === "GET") {
         const id = path.split("/").pop() ?? "";
-        return json({ contact: { memberInfo: { sessionInfo: logins.has(id) ? { lastWebLogin: logins.get(id) } : {} } } });
+        return json({
+          contact: {
+            memberInfo: {
+              emailVerified: verified.has(id),
+              sessionInfo: logins.has(id) ? { lastWebLogin: logins.get(id) } : {},
+            },
+          },
+        });
       }
       if (path.endsWith("/labels")) return json({});
       if (path === "/members/v1/auth/members/send-set-password-email") return json({ accepted: true });
@@ -182,6 +191,7 @@ export function createBackend() {
     pageEvents,
     members,
     logins,
+    verified,
     participants,
     calls,
     telegram,
