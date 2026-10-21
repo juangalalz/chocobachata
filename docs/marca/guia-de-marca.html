@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guía de marca · Choco Bachata</title>
+<!-- Todo sale de la landing (src/app/globals.css y layout.tsx) y del carrusel que más vende.
+     Para regenerar el PDF: ver README.md en esta carpeta. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --bg: #070707; --card: #12100c; --ink: #f6f3ec; --muted: #b7b0a4;
+    --gold: #d4af37; --gold-soft: #eedc82; --gold-deep: #b8860b; --gold-logo: #debd45;
+    --on-gold: #1a1408; --line: rgba(212, 175, 55, 0.35); --soft-line: rgba(255, 255, 255, 0.1);
+    --metal: linear-gradient(90deg, #bb9648 0%, #eac96c 50%, #be9a3c 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: var(--bg); color: var(--ink); font-family: Manrope, sans-serif; font-size: 10.5pt; line-height: 1.5; }
+  .page { width: 210mm; height: 297mm; padding: 18mm 17mm 14mm; position: relative; overflow: hidden; page-break-after: always; break-after: page; display: flex; flex-direction: column; }
+  .page:last-child { page-break-after: auto; break-after: auto; }
+  h1, h2, h3, .display { font-family: Montserrat, sans-serif; }
+  .kicker { font-family: Montserrat, sans-serif; font-weight: 600; font-size: 8.5pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+  h2 { font-weight: 800; font-size: 26pt; line-height: 1.05; letter-spacing: -0.01em; margin-top: 2.5mm; }
+  .lead { color: var(--muted); margin-top: 3mm; max-width: 150mm; }
+  h3 { font-weight: 700; font-size: 12pt; margin-bottom: 1.5mm; }
+  .muted { color: var(--muted); }
+  .gold { color: var(--gold); }
+  .foot { margin-top: auto; padding-top: 5mm; border-top: 1px solid var(--soft-line); display: flex; justify-content: space-between; font-size: 8pt; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--soft-line); border-radius: 4mm; padding: 5mm; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .rule { list-style: none; display: grid; gap: 2.2mm; }
+  .rule li { display: flex; gap: 2.5mm; align-items: flex-start; }
+  .yes::before, .no::before { flex: none; width: 5mm; height: 5mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 8pt; margin-top: 0.4mm; }
+  .yes::before { content: "✓"; background: rgba(212, 175, 55, 0.18); color: var(--gold); }
+  .no::before { content: "✕"; background: rgba(255, 255, 255, 0.08); color: #e7826f; }
+  .section { margin-top: 8mm; }
+
+  /* Portada */
+  .cover { justify-content: center; background: radial-gradient(120% 80% at 50% 40%, #1a150a 0%, var(--bg) 60%); }
+  .cover img { width: 120mm; }
+  .cover h1 { font-weight: 800; font-size: 34pt; line-height: 1.05; margin-top: 18mm; }
+  .cover .bar { width: 22mm; height: 1.2mm; background: var(--gold); margin-top: 8mm; }
+  .cover .who { margin-top: 6mm; color: var(--muted); max-width: 140mm; font-size: 12pt; }
+  .cover .foot { position: absolute; left: 17mm; right: 17mm; bottom: 14mm; }
+
+  /* Logo */
+  .logo-stage { background: var(--bg); border: 1px solid var(--line); border-radius: 4mm; padding: 17mm 14mm; display: flex; justify-content: center; }
+  .logo-stage img { width: 110mm; display: block; }
+  .clear { position: relative; display: inline-block; outline: 1px dashed rgba(212, 175, 55, 0.6); outline-offset: 11.5mm; }
+  .iso-row { display: grid; grid-template-columns: 52mm 1fr; gap: 6mm; align-items: center; margin-top: 6mm; }
+  .iso-box { background: var(--card); border: 1px solid var(--soft-line); border-radius: 4mm; height: 44mm; display: flex; align-items: center; justify-content: center; }
+  .iso-box img { height: 22mm; }
+  .bad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 4mm; }
+  .bad figure { text-align: center; font-size: 8pt; color: var(--muted); }
+  .bad .tile { height: 24mm; border-radius: 3mm; display: flex; align-items: center; justify-content: center; margin-bottom: 2mm; position: relative; overflow: hidden; border: 1px solid var(--soft-line); }
+  .bad .tile img { width: 34mm; }
+  .bad .tile::after { content: "✕"; position: absolute; top: 1.5mm; right: 2mm; color: #e7826f; font-weight: 700; font-size: 9pt; }
+
+  /* Colores */
+  .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5mm; margin-top: 6mm; }
+  .sw { border-radius: 4mm; overflow: hidden; border: 1px solid var(--soft-line); background: var(--card); }
+  .sw .chip { height: 15mm; }
+  .sw .info { padding: 3mm 3.5mm 3.5mm; }
+  .sw .name { font-weight: 700; font-size: 10pt; }
+  .sw .hex { font-family: Montserrat, sans-serif; font-weight: 600; color: var(--gold); font-size: 10pt; letter-spacing: 0.04em; }
+  .sw .use { font-size: 8.5pt; color: var(--muted); line-height: 1.4; margin-top: 1mm; }
+  .ratio { display: flex; height: 9mm; border-radius: 2mm; overflow: hidden; margin-top: 3mm; border: 1px solid var(--soft-line); }
+  .ratio div { display: flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 700; }
+
+  /* Tipografía */
+  .font-card { display: grid; grid-template-columns: 1fr 62mm; gap: 6mm; align-items: center; }
+  .specimen-a { font-family: Montserrat; font-weight: 800; font-size: 44pt; line-height: 1; }
+  .specimen-b { font-family: Manrope; font-weight: 500; font-size: 40pt; line-height: 1; }
+  .weights { font-size: 9pt; color: var(--muted); line-height: 1.6; }
+  .weights b { color: var(--ink); }
+  .scale { margin-top: 6mm; display: grid; gap: 0; }
+  .scale .row { display: grid; grid-template-columns: 1fr 60mm; gap: 6mm; align-items: center; padding: 3.2mm 0; border-top: 1px solid var(--soft-line); }
+  .scale .row:last-child { border-bottom: 1px solid var(--soft-line); }
+  .scale .spec { font-size: 8.5pt; color: var(--muted); line-height: 1.45; }
+  .scale .spec b { color: var(--gold); font-weight: 600; }
+
+  /* Plantilla */
+  .tpl { display: grid; grid-template-columns: 80mm 1fr; gap: 9mm; margin-top: 7mm; }
+  .shot { position: relative; }
+  .shot img { width: 80mm; display: block; border-radius: 3mm; border: 1px solid var(--soft-line); }
+  .dot { position: absolute; left: -3.2mm; width: 6.4mm; height: 6.4mm; border-radius: 50%; background: var(--gold); color: var(--on-gold); font-family: Montserrat; font-weight: 800; font-size: 9pt; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1.2mm var(--bg); }
+  .dot.right { left: auto; right: -3.2mm; }
+  .steps { list-style: none; display: grid; gap: 3.6mm; align-content: start; }
+  .steps li { display: grid; grid-template-columns: 7mm 1fr; gap: 2.5mm; }
+  .steps .n { width: 6.4mm; height: 6.4mm; border-radius: 50%; background: var(--gold); color: var(--on-gold); font-family: Montserrat; font-weight: 800; font-size: 9pt; display: flex; align-items: center; justify-content: center; }
+  .steps b { display: block; font-size: 10.5pt; }
+  .steps span { font-size: 9pt; color: var(--muted); line-height: 1.45; display: block; }
+  .pill { display: inline-block; background: var(--metal); color: var(--on-gold); font-family: Montserrat; font-weight: 700; border-radius: 2.2mm; padding: 1.4mm 3.5mm; font-size: 9.5pt; }
+  .formats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 7mm; }
+  .fmt { display: flex; gap: 3.5mm; align-items: center; }
+  .frame { flex: none; border: 1.2px solid var(--gold); border-radius: 1.2mm; position: relative; }
+  .frame .safe { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(45deg, rgba(231,130,111,0.35) 0 1mm, transparent 1mm 2mm); }
+  .fmt b { display: block; font-size: 10pt; }
+  .fmt span { font-size: 8.5pt; color: var(--muted); line-height: 1.4; display: block; }
+
+  /* Fotos */
+  .photos { display: grid; grid-template-columns: 58mm 1fr; gap: 7mm; margin-top: 7mm; align-items: start; }
+  .photos img { width: 100%; border-radius: 3mm; border: 1px solid var(--soft-line); display: block; object-fit: cover; }
+  .photos figure figcaption { font-size: 8pt; color: var(--muted); margin-top: 1.5mm; }
+  .photos .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 4mm; }
+  .photos .pair img { height: 34mm; }
+
+  /* Textos */
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; list-style: none; margin-top: 3mm; }
+  .facts li { font-size: 9.5pt; padding: 2.2mm 0; border-top: 1px solid var(--soft-line); }
+  .facts li b { color: var(--gold); font-weight: 600; display: block; font-size: 8pt; letter-spacing: 0.1em; text-transform: uppercase; }
+  .check { list-style: none; display: grid; gap: 2.4mm; margin-top: 3mm; }
+  .check li { display: flex; gap: 3mm; align-items: flex-start; font-size: 10pt; }
+  .check li::before { content: ""; flex: none; width: 4.2mm; height: 4.2mm; border: 1.3px solid var(--gold); border-radius: 1mm; margin-top: 0.6mm; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Portada -->
+<section class="page cover">
+  <img src="logo-choco-bachata.png" alt="Choco Bachata">
+  <h1>Guía de marca</h1>
+  <div class="bar"></div>
+  <p class="who">Para todas las imágenes que hagamos: anuncios, carruseles, historias y publicaciones. Colores, letras, logo y textos, tal como se ven en la página del curso.</p>
+  <div class="foot"><span>Choco Bachata · Curso online de bachata</span><span>Octubre 2026</span></div>
+</section>
+
+<!-- 2 · Logo -->
+<section class="page">
+  <p class="kicker">01 · Logo</p>
+  <h2>El logo, siempre dorado sobre oscuro</h2>
+  <p class="lead">El logo completo es el isotipo <b>CB</b> más «Choco» en letra a mano y «BACHATA» espaciado. Usa siempre el archivo original (<b>logo-choco-bachata.png</b>, con fondo transparente); no lo redibujes ni lo escribas con otra letra.</p>
+
+  <div class="section logo-stage"><span class="clear"><img src="logo-choco-bachata.png" alt=""></span></div>
+  <p class="muted" style="font-size:8.5pt;margin-top:2.5mm">La línea punteada es el espacio libre mínimo: deja alrededor del logo, como mínimo, la mitad del alto del isotipo CB. Nada de texto ni bordes dentro de ese espacio.</p>
+
+  <div class="iso-row">
+    <div class="iso-box"><img src="isotipo-cb.png" alt=""></div>
+    <div>
+      <h3>Isotipo CB solo</h3>
+      <p class="muted" style="font-size:9.5pt">Para espacios pequeños: foto de perfil, marca de agua, esquinas de video o cuando el logo completo quedaría ilegible. Archivo: <b style="color:var(--ink)">isotipo-cb.png</b>.</p>
+      <ul class="rule" style="margin-top:3mm;font-size:9.5pt">
+        <li class="yes">En anuncios, el logo completo va arriba a la izquierda y ocupa entre ⅓ y ½ del ancho de la imagen.</li>
+        <li class="yes">Tamaño mínimo del logo completo: 300 px de ancho en una imagen de 1080 px.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:8mm">Lo que no se hace</h3>
+  <div class="bad">
+    <figure><div class="tile" style="background:#f6f3ec"><img src="logo-choco-bachata.png" alt=""></div>Sobre fondo claro</figure>
+    <figure><div class="tile" style="background:var(--bg)"><img src="logo-choco-bachata.png" alt="" style="transform:scaleX(1.45);width:26mm"></div>Estirado o deformado</figure>
+    <figure><div class="tile" style="background:var(--bg)"><img src="logo-choco-bachata.png" alt="" style="filter:hue-rotate(160deg) saturate(1.6)"></div>Cambiado de color</figure>
+    <figure><div class="tile" style="background:var(--bg)"><img src="logo-choco-bachata.png" alt="" style="filter:drop-shadow(0.8mm 0.8mm 0 #e7826f)"></div>Con sombras o efectos</figure>
+  </div>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata</span><span>2</span></div>
+</section>
+
+<!-- 3 · Colores -->
+<section class="page">
+  <p class="kicker">02 · Colores</p>
+  <h2>Negro, crema y dorado</h2>
+  <p class="lead">Son los colores exactos de la página del curso. En Canva, pega el código (#…) en «Color nuevo». No uses otros colores de acento: ni rojos, ni azules, ni dorados «a ojo».</p>
+
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#070707;border-bottom:1px solid var(--soft-line)"></div><div class="info"><p class="name">Negro fondo</p><p class="hex">#070707</p><p class="use">Fondo principal y degradado sobre la foto.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#12100c;border-bottom:1px solid var(--soft-line)"></div><div class="info"><p class="name">Negro tarjeta</p><p class="hex">#12100C</p><p class="use">Recuadros y tarjetas sobre el fondo negro.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#f6f3ec"></div><div class="info"><p class="name">Crema</p><p class="hex">#F6F3EC</p><p class="use">Títulos y texto principal. También vale blanco puro #FFFFFF.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#d4af37"></div><div class="info"><p class="name">Dorado</p><p class="hex">#D4AF37</p><p class="use">El acento: etiquetas en mayúsculas, checks, números y botones.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#eedc82"></div><div class="info"><p class="name">Dorado claro</p><p class="hex">#EEDC82</p><p class="use">Brillo del degradado dorado y detalles pequeños.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#b8860b"></div><div class="info"><p class="name">Dorado profundo</p><p class="hex">#B8860B</p><p class="use">Sombra del degradado dorado.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#b7b0a4"></div><div class="info"><p class="name">Gris cálido</p><p class="hex">#B7B0A4</p><p class="use">Textos secundarios: aclaraciones, letra pequeña.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#1a1408"></div><div class="info"><p class="name">Texto sobre dorado</p><p class="hex">#1A1408</p><p class="use">Letra dentro de botones y píldoras doradas. Nunca blanco sobre dorado.</p></div></div>
+    <div class="sw"><div class="chip" style="background:#debd45"></div><div class="info"><p class="name">Dorado del logo</p><p class="hex">#DEBD45</p><p class="use">Solo es el color del archivo del logo. No hace falta usarlo en otra cosa.</p></div></div>
+  </div>
+
+  <div class="section grid2">
+    <div class="card">
+      <h3>Degradado dorado (píldora del precio)</h3>
+      <div style="height:12mm;border-radius:2.5mm;background:var(--metal);margin-top:2mm"></div>
+      <p class="muted" style="font-size:8.5pt;margin-top:2.5mm">Lineal, de izquierda a derecha: <b style="color:var(--ink)">#BB9648 → #EAC96C → #BE9A3C</b>. Da el efecto metálico de los anuncios que mejor funcionan.</p>
+    </div>
+    <div class="card">
+      <h3>Proporción en cada imagen</h3>
+      <div class="ratio"><div style="width:70%;background:#070707"></div><div style="width:20%;background:#f6f3ec"></div><div style="width:10%;background:#d4af37"></div></div>
+      <p style="font-size:8.5pt;margin-top:2mm"><b>Negro 70 %</b> · <b>Crema 20 %</b> · <b class="gold">Dorado 10 %</b></p>
+      <p class="muted" style="font-size:8.5pt;margin-top:2.5mm">El dorado es un acento. Si hay demasiado, deja de destacar y la imagen pierde elegancia.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata</span><span>3</span></div>
+</section>
+
+<!-- 4 · Tipografía -->
+<section class="page">
+  <p class="kicker">03 · Tipografía</p>
+  <h2>Dos letras, nada más</h2>
+  <p class="lead">Las dos son gratuitas en Google Fonts. Montserrat está en Canva; si Manrope no aparece, usa Montserrat Medium para los textos.</p>
+
+  <div class="section card font-card">
+    <div><p class="specimen-a">Montserrat</p><p class="muted" style="margin-top:3mm;font-size:9.5pt">Títulos, precios, números y etiquetas en mayúsculas.</p></div>
+    <p class="weights"><b>ExtraBold 800</b> · títulos grandes y precio<br><b>Bold 700</b> · subtítulos y píldoras<br><b>SemiBold 600</b> · etiquetas en MAYÚSCULAS</p>
+  </div>
+  <div class="card font-card" style="margin-top:4mm">
+    <div><p class="specimen-b">Manrope</p><p class="muted" style="margin-top:3mm;font-size:9.5pt">Textos: listas, frases de apoyo, letra pequeña.</p></div>
+    <p class="weights"><b>Medium 500</b> · listas con checks<br><b>Regular 400</b> · párrafos<br><b>SemiBold 600</b> · resaltar una palabra</p>
+  </div>
+
+  <h3 style="margin-top:9mm">Jerarquía, de arriba abajo</h3>
+  <div class="scale">
+    <div class="row"><p class="kicker" style="font-size:11pt">Curso online de bachata</p><p class="spec"><b>Etiqueta</b> · Montserrat SemiBold, MAYÚSCULAS, dorado, letras separadas (en Canva, espaciado 100–150).</p></div>
+    <div class="row"><p class="display" style="font-weight:800;font-size:26pt;line-height:1.02;letter-spacing:-0.01em">Aprende a bailar bachata desde cero</p><p class="spec"><b>Título</b> · Montserrat ExtraBold, crema o blanco, interlineado apretado (1,0–1,1). Máximo 5 líneas.</p></div>
+    <div class="row"><p style="font-weight:500;font-size:13pt"><span class="gold" style="margin-right:2mm">✓</span>3 niveles progresivos</p><p class="spec"><b>Lista</b> · Manrope Medium, crema, con check dorado delante. Máximo 3 puntos.</p></div>
+    <div class="row"><p><span class="pill" style="font-size:12pt">29,99 € · Pago único</span></p><p class="spec"><b>Precio</b> · Montserrat Bold en píldora con el degradado dorado y letra #1A1408.</p></div>
+    <div class="row"><p class="muted" style="font-size:10pt">IVA incluido · Acceso sin caducidad</p><p class="spec"><b>Letra pequeña</b> · Manrope Regular, gris cálido.</p></div>
+  </div>
+
+  <ul class="rule" style="margin-top:6mm;font-size:9.5pt">
+    <li class="no">Nada de letras cursivas o «manuscritas» en los textos: la letra a mano es exclusiva del logo.</li>
+    <li class="no">Sin contornos, sombras de colores ni efectos 3D en las letras.</li>
+  </ul>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata</span><span>4</span></div>
+</section>
+
+<!-- 5 · Plantilla -->
+<section class="page">
+  <p class="kicker">04 · La plantilla que vende</p>
+  <h2>Así se arma un anuncio</h2>
+  <p class="lead">Es la estructura del carrusel que más ventas ha traído. Para cada pieza nueva, cambia la foto y el título, y mantén todo lo demás en su sitio.</p>
+
+  <div class="tpl">
+    <div class="shot">
+      <img src="ejemplo-anuncio.jpeg" alt="">
+      <span class="dot" style="top:17.3%">1</span>
+      <span class="dot" style="top:29.6%">2</span>
+      <span class="dot" style="top:40.5%">3</span>
+      <span class="dot" style="top:62%">4</span>
+      <span class="dot" style="top:73.3%">5</span>
+      <span class="dot right" style="top:30%">6</span>
+    </div>
+    <ol class="steps">
+      <li><span class="n">1</span><div><b>Logo arriba a la izquierda</b><span>Logo completo, dorado, con aire alrededor.</span></div></li>
+      <li><span class="n">2</span><div><b>Etiqueta dorada</b><span>Corta y en MAYÚSCULAS: «CURSO ONLINE DE BACHATA».</span></div></li>
+      <li><span class="n">3</span><div><b>Título grande</b><span>Una sola idea, 3–5 líneas, en crema o blanco. Es lo primero que se lee.</span></div></li>
+      <li><span class="n">4</span><div><b>3 checks dorados</b><span>Tres beneficios cortos, de 2–4 palabras cada uno.</span></div></li>
+      <li><span class="n">5</span><div><b>Precio en píldora dorada</b><span>«29,99 € · Pago único» o «¡Por solo 29,99 €!».</span></div></li>
+      <li><span class="n">6</span><div><b>Choco a la derecha</b><span>Sonriendo y mirando a cámara. Un degradado negro desde la izquierda funde la foto con el texto, para que se lea siempre bien.</span></div></li>
+    </ol>
+  </div>
+
+  <h3 style="margin-top:8mm">Tamaños</h3>
+  <div class="formats">
+    <div class="fmt"><div class="frame" style="width:13mm;height:16.25mm"></div><div><b>1080 × 1350</b><span>Vertical 4:5. Feed y carrusel. El formato principal.</span></div></div>
+    <div class="fmt"><div class="frame" style="width:10mm;height:17.8mm"><div class="safe" style="top:0;height:2.5mm"></div><div class="safe" style="bottom:0;height:3.5mm"></div></div><div><b>1080 × 1920</b><span>9:16. Historias y reels. Deja libres ~250 px arriba y ~350 px abajo (rayado).</span></div></div>
+    <div class="fmt"><div class="frame" style="width:14mm;height:14mm"></div><div><b>1080 × 1080</b><span>Cuadrado. Solo si una ubicación lo pide.</span></div></div>
+  </div>
+
+  <div class="section card">
+    <h3>Para ir más rápido en Canva</h3>
+    <ul class="rule" style="font-size:9.5pt">
+      <li class="yes">Arma una vez el diseño base con esta estructura y duplícalo para cada pieza nueva: cambia solo la foto, el título y los checks.</li>
+      <li class="yes">Si tienes Canva Pro, guarda el logo, los colores y las dos letras en el «Kit de marca», y aparecen a mano en cada diseño.</li>
+      <li class="yes">Para un carrusel, haz todas las tarjetas con la misma plantilla: cada una cuenta una parte de la historia y la última lleva el precio.</li>
+    </ul>
+  </div>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata</span><span>5</span></div>
+</section>
+
+<!-- 6 · Fotos -->
+<section class="page">
+  <p class="kicker">05 · Fotos</p>
+  <h2>Choco es la marca</h2>
+  <p class="lead">La gente compra porque confía en Choco. En casi todas las imágenes tiene que aparecer él, cercano y alegre.</p>
+
+  <div class="photos">
+    <div>
+      <figure><img src="../../public/choco-1.jpg" alt="" style="height:72mm;object-position:top"><figcaption>Sonrisa, mirada a cámara y mano tendida.</figcaption></figure>
+      <div class="pair">
+        <figure><img src="../../public/choco-2.jpg" alt=""><figcaption>Bailando, al aire libre.</figcaption></figure>
+        <figure><img src="../../public/hero.jpg" alt=""><figcaption>El curso en casa.</figcaption></figure>
+      </div>
+    </div>
+    <div>
+      <ul class="rule">
+        <li class="yes">Choco sonriendo y mirando a cámara, de cintura para arriba. El gesto de tender la mano funciona muy bien: invita a empezar.</li>
+        <li class="yes">Camiseta negra con el logo CB visible.</li>
+        <li class="yes">Luz natural y tonos cálidos: de día al aire libre, al atardecer o en un interior luminoso. Fondo desenfocado con plantas, una casa moderna o la ciudad al anochecer.</li>
+        <li class="yes">Fotos bailando, donde se vean el movimiento y las ganas de disfrutar, no solo una pose.</li>
+        <li class="yes">El curso en una tablet o una TV, en una casa: ayuda a entender que es online y se ve desde casa.</li>
+        <li class="yes">Foto nítida y bien expuesta: que la cara se vea bien incluso en el móvil.</li>
+      </ul>
+      <h3 style="margin-top:6mm">Evitar</h3>
+      <ul class="rule">
+        <li class="no">Fotos de bancos de imágenes o de otros bailarines: tiene que ser Choco.</li>
+        <li class="no">Filtros fríos, azulados o en blanco y negro.</li>
+        <li class="no">Fondos blancos planos o muy cargados detrás del texto.</li>
+        <li class="no">La cara de Choco tapada por textos o por el logo.</li>
+        <li class="no">Fotos borrosas, pixeladas o muy oscuras.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata</span><span>6</span></div>
+</section>
+
+<!-- 7 · Textos y revisión -->
+<section class="page">
+  <p class="kicker">06 · Textos</p>
+  <h2>Qué decimos (y qué no)</h2>
+  <p class="lead">El curso se vende en España: hablamos de <b>tú</b>, con palabras de allí (móvil, ordenador), y con frases cortas y positivas. Estos son los datos oficiales; no hay que inventar otros.</p>
+
+  <ul class="facts">
+    <li><b>Precio</b>29,99 € · pago único · IVA incluido</li>
+    <li><b>Precio anterior (tachado)</b>45 €</li>
+    <li><b>Contenido</b>3 niveles: Básico, Intermedio y Avanzado</li>
+    <li><b>Acceso</b>Sin caducidad, de por vida</li>
+    <li><b>Cómo</b>Desde casa, a tu ritmo, en TV, PC, tablet o móvil</li>
+    <li><b>Para quién</b>Desde cero, sin experiencia previa</li>
+    <li><b>Choco</b>Más de 15 años bailando y enseñando bachata</li>
+    <li><b>Formas de pago</b>Tarjeta, Apple Pay, Google Pay o PayPal</li>
+  </ul>
+
+  <div class="grid2 section">
+    <div>
+      <h3>Escribir así</h3>
+      <ul class="rule" style="font-size:9.5pt">
+        <li class="yes"><span>El precio siempre igual: <b>29,99 €</b> (coma y espacio antes del €).</span></li>
+        <li class="yes">Títulos que prometen un resultado: «Aprende a bailar bachata desde cero», «Del primer paso a la pista».</li>
+        <li class="yes">Una idea por imagen.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>No poner nunca</h3>
+      <ul class="rule" style="font-size:9.5pt">
+        <li class="no">«Garantía», «devolución» o «reembolso»: no hacemos devoluciones.</li>
+        <li class="no">«Gratis», descuentos u ofertas que no existen.</li>
+        <li class="no">Número de alumnos, premios o datos que no estén en esta lista.</li>
+        <li class="no">Emojis dentro de la imagen.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section card">
+    <h3>Antes de subir una imagen, revisa</h3>
+    <ul class="check">
+      <li>¿Está el logo original, dorado, sin deformar y con aire alrededor?</li>
+      <li>¿Solo hay Montserrat y Manrope, y los colores de esta guía?</li>
+      <li>¿Se lee el título en el móvil en menos de 2 segundos?</li>
+      <li>¿Aparece Choco con la cara despejada?</li>
+      <li>¿El precio está escrito «29,99 €» y los datos son los de esta página?</li>
+      <li>¿Está en el tamaño correcto (1080 × 1350 o 1080 × 1920 con márgenes libres)?</li>
+    </ul>
+  </div>
+
+  <div class="foot"><span>Guía de marca · Choco Bachata · chocobachata10@gmail.com</span><span>7</span></div>
+</section>
+
+</body>
+</html>
