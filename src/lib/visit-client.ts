@@ -83,6 +83,35 @@ function cookie(name: string): string {
   return match ? decodeURIComponent(match[1]) : "";
 }
 
+const cookieDays = 90;
+
+function setCookie(name: string, value: string): void {
+  // En el dominio principal, como el píxel, para que lo lean curso. y pago.
+  const domain = /(^|\.)chocobachata\.com$/.test(window.location.hostname)
+    ? "; domain=.chocobachata.com"
+    : "";
+  document.cookie = `${name}=${value}; max-age=${cookieDays * 86400}; path=/; SameSite=Lax${domain}`;
+}
+
+// Las cookies de Meta, sin esperar al píxel. El píxel carga tarde: la entrada a la página
+// salía sin _fbp (7 de cada 10 en oct 2026), y si alguien volvía por otro anuncio y tocaba
+// Comprar en segundos, mandábamos el _fbc del clic anterior. El píxel respeta las que ya existen.
+function metaCookies(fbclid: string): { fbc: string; fbp: string } {
+  let fbp = cookie("_fbp");
+  if (!fbp) {
+    fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 2147483647)}`;
+    setCookie("_fbp", fbp);
+  }
+
+  let fbc = cookie("_fbc");
+  if (fbclid && !fbc.endsWith(`.${fbclid}`)) {
+    fbc = `fb.1.${Date.now()}.${fbclid}`;
+    setCookie("_fbc", fbc);
+  }
+
+  return { fbc, fbp };
+}
+
 // Fijo por navegador: el mismo en cada visita, venga del anuncio que venga.
 function visitorId(fallback: string): string {
   try {
@@ -107,10 +136,7 @@ export function visitContext(): VisitContext {
 
   const params = new URLSearchParams(window.location.search);
   const fbclid = params.get("fbclid") ?? "";
-  const fbp = cookie("_fbp");
-  const existingFbc = cookie("_fbc");
-  const fbc =
-    existingFbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : "");
+  const { fbc, fbp } = metaCookies(fbclid);
 
   return {
     sessionId,
@@ -122,6 +148,25 @@ export function visitContext(): VisitContext {
     source: trafficSource(params),
     device: deviceType(),
   };
+}
+
+const readKey = "choco_leyo";
+
+// Quien llega al 75 % de la página o ve el video entero es quien compra. Este evento llena
+// en Meta una audiencia de lectores para el remarketing, separada de los que solo tocan.
+export function markRead(): void {
+  if (isInternal()) {
+    return;
+  }
+
+  try {
+    if (sessionStorage.getItem(readKey)) {
+      return;
+    }
+    sessionStorage.setItem(readKey, "1");
+  } catch {}
+
+  window.fbq?.("trackCustom", "LeyoPagina");
 }
 
 export function sendVisit(
@@ -146,11 +191,11 @@ export function sendVisit(
 
   const body = JSON.stringify(payload);
 
-  if (name === "leave" && navigator.sendBeacon) {
-    navigator.sendBeacon(
-      "/api/events",
-      new Blob([body], { type: "application/json" }),
-    );
+  // sendBeacon llega aunque el navegador de Instagram corte la página: con fetch se perdía
+  // 1 de cada 10 entradas, mientras que la salida (siempre por beacon) sí llegaba.
+  if (
+    navigator.sendBeacon?.("/api/events", new Blob([body], { type: "application/json" }))
+  ) {
     return;
   }
 

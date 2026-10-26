@@ -68,7 +68,7 @@ describe("aviso de venta por Telegram", () => {
 
     await POST(paid());
 
-    expect(backend.sales[0].text).toMatch(/🔁 Compró en su visita 2, \d días después de la primera: Video 2 \(12 oct\) → Carrusel de fotos \(14 oct\)/);
+    expect(backend.sales[0].text).toMatch(/🔁 Compró en su visita 2, \d+ días después de la primera: Video 2 \(12 oct\) → Carrusel de fotos \(14 oct\)/);
   });
 
   it("une las visitas de antes del identificador por la cookie _fbp", async () => {

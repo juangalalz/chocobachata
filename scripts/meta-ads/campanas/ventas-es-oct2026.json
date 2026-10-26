@@ -10,7 +10,7 @@
   "campaign": {
     "name": "VENTAS_ES_CursoCompleto_Oct2026",
     "dailyBudget": 50000,
-    "spendCap": 800000
+    "spendCap": 1000000
   },
   "adSet": {
     "name": "ES_25+_Advantage_Purchase",
@@ -21,6 +21,18 @@
         "ES"
       ],
       "ageMin": 35,
+      "ageMax": 64,
+      "genders": [1],
+      "devices": ["mobile"],
+      "placements": {
+        "publisher_platforms": ["instagram", "facebook"],
+        "instagram_positions": ["stream", "story", "reels"],
+        "facebook_positions": ["feed", "story", "facebook_reels"]
+      },
+      "excludedAudiences": [
+        ["120249502211980141", "Compradores (píxel Purchase, 180 días)"],
+        ["120249609334180141", "Visitantes 8+ veces en curso. (píxel PageView, 30 días)"]
+      ],
       "interests": [
         [
           "6003445007740",

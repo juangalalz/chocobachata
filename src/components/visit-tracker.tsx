@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { isInternal, sendVisit } from "@/lib/visit-client";
+import { isInternal, markRead, sendVisit } from "@/lib/visit-client";
 
 const depths = [25, 50, 75, 100];
 let tracking = false;
@@ -31,6 +31,9 @@ export function VisitTracker() {
         if (percent >= depth && !seen.has(depth)) {
           seen.add(depth);
           sendVisit("scroll", { depth });
+          if (depth >= 75) {
+            markRead();
+          }
         }
       }
     }

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 
-import { sendVisit } from "@/lib/visit-client";
+import { markRead, sendVisit } from "@/lib/visit-client";
 
 type DanceVideoProps = {
   src: string;
@@ -23,6 +23,9 @@ export function DanceVideo({ src, poster, label }: DanceVideoProps) {
       if (percent >= depth && !reached.current.has(depth)) {
         reached.current.add(depth);
         sendVisit("video_progress", { depth });
+        if (depth === 100) {
+          markRead();
+        }
       }
     }
   }

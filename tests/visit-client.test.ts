@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { isInternal, sendVisit, visitContext } from "@/lib/visit-client";
+import { isInternal, markRead, sendVisit, visitContext } from "@/lib/visit-client";
 
 function open(url: string, userAgent: string, referrer = "") {
   window.history.replaceState({}, "", url);
@@ -43,6 +43,75 @@ describe("origen y dispositivo de la visita", () => {
   it("mantiene la misma sesión en toda la visita", () => {
     open("/", iphone);
     expect(visitContext().sessionId).toBe(visitContext().sessionId);
+  });
+});
+
+describe("cookies de Meta", () => {
+  beforeEach(() => {
+    for (const name of ["_fbp", "_fbc"]) {
+      document.cookie = `${name}=; max-age=0; path=/`;
+    }
+  });
+
+  it("crea _fbp en la primera entrada y lo mantiene", () => {
+    open("/", iphone);
+    const { fbp } = visitContext();
+    expect(fbp).toMatch(/^fb\.1\.\d+\.\d+$/);
+    expect(visitContext().fbp).toBe(fbp);
+  });
+
+  it("respeta el _fbp que ya puso el píxel", () => {
+    document.cookie = "_fbp=fb.1.1.123; path=/";
+    open("/", iphone);
+    expect(visitContext().fbp).toBe("fb.1.1.123");
+  });
+
+  it("un clic nuevo en un anuncio reemplaza el _fbc del clic anterior", () => {
+    document.cookie = "_fbc=fb.1.1.viejo; path=/";
+    open("/?fbclid=nuevo", iphone);
+    expect(visitContext().fbc).toMatch(/^fb\.1\.\d+\.nuevo$/);
+  });
+
+  it("sin clic nuevo conserva el _fbc", () => {
+    document.cookie = "_fbc=fb.1.1.viejo; path=/";
+    open("/", iphone);
+    expect(visitContext().fbc).toBe("fb.1.1.viejo");
+
+    open("/?fbclid=viejo", iphone);
+    expect(visitContext().fbc).toBe("fb.1.1.viejo");
+  });
+});
+
+describe("envío de eventos", () => {
+  it("usa sendBeacon y solo recurre a fetch si el navegador lo rechaza", () => {
+    const fetchMock = vi.fn(() => Promise.resolve(new Response()));
+    const beacon = vi.fn(() => true);
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(window.navigator, "sendBeacon", { value: beacon, configurable: true });
+
+    open("/", iphone);
+    sendVisit("page_view");
+    expect(beacon).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    beacon.mockReturnValue(false);
+    sendVisit("scroll", { depth: 25 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(window.navigator, "sendBeacon", { value: undefined, configurable: true });
+  });
+
+  it("marca la lectura en el píxel una sola vez por visita", () => {
+    const fbq = vi.fn();
+    window.fbq = fbq;
+
+    open("/", iphone);
+    markRead();
+    markRead();
+    expect(fbq).toHaveBeenCalledTimes(1);
+    expect(fbq).toHaveBeenCalledWith("trackCustom", "LeyoPagina");
+
+    delete window.fbq;
   });
 });
 

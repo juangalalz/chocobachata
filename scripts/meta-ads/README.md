@@ -30,6 +30,11 @@ Tipos de anuncio:
 - `node scripts/meta-ads/informe.mjs --dias 3`: gasto, clics y coste por venta de cada anuncio,
   con las ventas reales de la web (no las que se atribuye Meta). Al final, venta a venta: cuánto
   se gastó entre una y la siguiente, para ver si el coste por venta baja.
+- `node scripts/meta-ads/fugas.mjs --dias 7`: dónde gasta Meta sin aportar al embudo. Muestra:
+  - costo por persona nueva que lee, día a día (se mueve antes que las ventas);
+  - repetidores que tocan el anuncio sin leer;
+  - gasto por género y edad, ubicación y hora de España, con inicios de pago;
+  - si la configuración del conjunto sigue siendo la del JSON.
 - `node scripts/meta-ads/estado.mjs pausar <id>` · `activar <id...>` · `presupuesto <id> <COP>`.
 
 ## Cosas de Meta que costó descubrir
@@ -42,5 +47,11 @@ Tipos de anuncio:
 - En `creative_features_spec` no existen `music` ni `hd_video`; la lista válida está en `lib.mjs`.
 - Para anunciarse en la UE el conjunto necesita `dsa_beneficiary` y `dsa_payor`.
 - Algunos intereses desaparecen (p. ej. Kizomba): si Meta rechaza el conjunto, quita el interés.
+- Meta no está alineada con nosotros: cobra por impresión y optimiza su propia predicción. Desde
+  el día 1, excluye a los compradores y a los repetidores (8+ visitas en 30 días), quita Audience
+  Network y el ordenador, y revisa `fugas.mjs`. En oct 2026 tres personas que no leían se
+  llevaron el 28 % de las visitas de cuatro días, y el 41 % del gasto iba a mujeres, que casi no
+  abrían el pago.
+- En la API, `age_max: 65` significa "65 o más".
 - Cada anuncio lleva `utm_content` propio: así el tablero (`/tablero`) sabe qué anuncio trajo
   cada visita y cada venta.

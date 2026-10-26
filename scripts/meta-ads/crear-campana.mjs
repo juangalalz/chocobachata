@@ -171,10 +171,19 @@ async function main() {
       targeting: {
         geo_locations: { countries: audience.countries, location_types: ["home", "recent"] },
         age_min: audience.ageMin,
-        age_max: 65,
+        // En la API, 65 significa "65 o más".
+        age_max: audience.ageMax ?? 65,
+        ...(audience.genders ? { genders: audience.genders } : {}),
         ...(audience.suggestedAges ? { age_range: audience.suggestedAges } : {}),
         ...(audience.interests?.length
           ? { flexible_spec: [{ interests: audience.interests.map(([id, name]) => ({ id, name })) }] }
+          : {}),
+        // Fugas de oct 2026: Audience Network y ordenador traían clics sin valor, y
+        // compradores y visitantes compulsivos seguían viendo anuncios.
+        ...(audience.devices ? { device_platforms: audience.devices } : {}),
+        ...(audience.placements ?? {}),
+        ...(audience.excludedAudiences?.length
+          ? { excluded_custom_audiences: audience.excludedAudiences.map(([id]) => ({ id })) }
           : {}),
         // Con Advantage+ Meta solo acepta la edad como sugerencia y nunca por encima de 25.
         // Sin él, edad e intereses son obligatorios (en oct 2026 los menores de 35 no respondían).
