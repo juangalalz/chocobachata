@@ -56,6 +56,7 @@ function filterRows(rows: Row[], params: URLSearchParams): Row[] {
 export function createBackend() {
   const orders = new Map<string, Row>();
   const pageEvents: Row[] = [];
+  const robotEvents: Row[] = [];
   const members = new Map<string, string>(); // email -> id
   const logins = new Map<string, string>(); // memberId -> último inicio de sesión
   const verified = new Set<string>(); // memberId que abrieron el correo de la contraseña
@@ -100,6 +101,10 @@ export function createBackend() {
           return json(matched);
         }
         return json(filterRows([...orders.values()], url.searchParams));
+      }
+      if (url.pathname === "/rest/v1/robot_events" && method === "POST") {
+        robotEvents.push(body);
+        return new Response(null, { status: 201 });
       }
       if (url.pathname === "/rest/v1/page_events") {
         if (method === "POST") {
@@ -189,6 +194,7 @@ export function createBackend() {
   return {
     orders,
     pageEvents,
+    robotEvents,
     members,
     logins,
     verified,

@@ -48,6 +48,19 @@ export function isMetaNetwork(ip: string | undefined): boolean {
   );
 }
 
+export type RobotReason = "navegador" | "red_meta";
+
+// Por qué es un robot, o null si parece una persona.
+export function robotReason(
+  userAgent: string | undefined,
+  ip: string | undefined,
+): RobotReason | null {
+  if (userAgent != null && robotAgents.test(userAgent)) {
+    return "navegador";
+  }
+  return isMetaNetwork(ip) ? "red_meta" : null;
+}
+
 export function isRobot(userAgent: string | undefined, ip: string | undefined): boolean {
-  return (userAgent != null && robotAgents.test(userAgent)) || isMetaNetwork(ip);
+  return robotReason(userAgent, ip) !== null;
 }

@@ -71,6 +71,41 @@ export async function insertPageEvent(
   }
 }
 
+export type RobotEventRow = {
+  reason: string;
+  session_id: string;
+  name: string;
+  depth: number | null;
+  seconds: number | null;
+  visible_seconds: number | null;
+  loaded_hidden: boolean | null;
+  cta: string | null;
+  utm_content: string | null;
+  ad_group: string | null;
+  placement: string | null;
+  has_fbclid: boolean;
+  client_ip: string | null;
+  user_agent: string | null;
+};
+
+// Los robots van a su propia tabla: no cuentan como visitas, pero se puede ver qué hacen.
+export async function insertRobotEvent(row: RobotEventRow): Promise<void> {
+  const url = restUrl("robot_events");
+  if (!url) {
+    return;
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify(row),
+  });
+
+  if (!response.ok) {
+    console.error("[visitas] No se guardó el evento del robot", response.status);
+  }
+}
+
 // Datos de Meta de la visita que abrió el pago. Se toma el valor más reciente
 // de cada campo, empezando por el clic en Comprar ahora.
 export async function findSessionTracking(

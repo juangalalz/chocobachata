@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { sendMetaEvent } from "@/lib/meta";
 import { notifyRescue, rescueCheck, sessionPurchased } from "@/lib/rescue";
-import { isRobot } from "@/lib/robots";
-import { insertPageEvent } from "@/lib/visits";
+import { robotReason } from "@/lib/robots";
+import { insertPageEvent, insertRobotEvent } from "@/lib/visits";
 
 const names = new Set([
   "page_view",
@@ -62,7 +62,31 @@ export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const clientIp = forwarded || request.headers.get("x-real-ip") || undefined;
   const userAgent = request.headers.get("user-agent") || undefined;
-  if (isRobot(userAgent, clientIp)) {
+  const depth = typeof body.depth === "number" ? body.depth : null;
+  const seconds = typeof body.seconds === "number" ? body.seconds : null;
+  const visibleSeconds = typeof body.visibleSeconds === "number" ? body.visibleSeconds : null;
+  const loadedHidden = typeof body.loadedHidden === "boolean" ? body.loadedHidden : null;
+  const cta = labeled.has(name) ? label(body.cta) : null;
+
+  // Ni cuentan como visita ni se reenvían a Meta, pero quedan en su tabla para el informe.
+  const reason = robotReason(userAgent, clientIp);
+  if (reason) {
+    await insertRobotEvent({
+      reason,
+      session_id: sessionId,
+      name,
+      depth,
+      seconds,
+      visible_seconds: visibleSeconds,
+      loaded_hidden: loadedHidden,
+      cta,
+      utm_content: label(body.utmContent),
+      ad_group: label(body.adGroup),
+      placement: label(body.placement),
+      has_fbclid: Boolean(body.fbclid),
+      client_ip: clientIp ?? null,
+      user_agent: userAgent?.slice(0, 300) ?? null,
+    });
     return NextResponse.json({ ok: true, skipped: true });
   }
 
@@ -75,8 +99,8 @@ export async function POST(request: Request) {
     session_id: sessionId,
     visitor_id: label(body.visitorId),
     name,
-    depth: typeof body.depth === "number" ? body.depth : null,
-    seconds: typeof body.seconds === "number" ? body.seconds : null,
+    depth,
+    seconds,
     path: body.path ?? null,
     fbclid: body.fbclid ?? null,
     fbc: body.fbc ?? null,
@@ -84,9 +108,9 @@ export async function POST(request: Request) {
     utm_content: body.utmContent ?? null,
     ad_group: label(body.adGroup),
     placement: label(body.placement),
-    visible_seconds: typeof body.visibleSeconds === "number" ? body.visibleSeconds : null,
-    loaded_hidden: typeof body.loadedHidden === "boolean" ? body.loadedHidden : null,
-    cta: labeled.has(name) ? label(body.cta) : null,
+    visible_seconds: visibleSeconds,
+    loaded_hidden: loadedHidden,
+    cta,
     source: label(body.source),
     device: label(body.device),
     event_id: body.eventId ?? null,

@@ -71,6 +71,10 @@ describe("/api/events", () => {
 
     expect(backend.callsTo(`${SUPABASE}/rest/v1/page_events`)).toHaveLength(0);
     expect(backend.metaEvents).toHaveLength(0);
+    // No cuenta como visita, pero queda guardado aparte para el informe de robots.
+    expect(backend.robotEvents).toEqual([
+      expect.objectContaining({ reason: "navegador", name: "cta_click", cta: "oferta", client_ip: "5.6.7.8" }),
+    ]);
   });
 
   it("ignora al revisor de Meta aunque se haga pasar por un móvil", async () => {
@@ -79,13 +83,19 @@ describe("/api/events", () => {
       await events(
         new Request("https://curso.chocobachata.com/api/events", {
           method: "POST",
-          body: JSON.stringify({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "barra" }),
+          body: JSON.stringify({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "barra", fbclid: "x", loadedHidden: true }),
           headers: { "x-forwarded-for": ip, "user-agent": disguised },
         }),
       );
     }
 
     expect(backend.callsTo(`${SUPABASE}/rest/v1/page_events`)).toHaveLength(0);
+    expect(backend.robotEvents.map((event) => [event.reason, event.client_ip, event.has_fbclid, event.loaded_hidden])).toEqual([
+      ["red_meta", "66.220.149.7", true, true],
+      ["red_meta", "31.13.127.89", true, true],
+      ["red_meta", "173.252.82.11", true, true],
+      ["red_meta", "2a03:2880:f0ff:c::face:b00c", true, true],
+    ]);
     expect(backend.metaEvents).toHaveLength(0);
   });
 
