@@ -35,6 +35,12 @@ Tipos de anuncio:
   - repetidores que tocan el anuncio sin leer;
   - gasto por género y edad, ubicación y hora de España, con inicios de pago;
   - si la configuración del conjunto sigue siendo la del JSON.
+- `node scripts/meta-ads/experimento.mjs`: desde el 28 oct 2026 hay dos conjuntos con los mismos
+  anuncios y el mismo dinero (21.000–29.000 al día cada uno). **Estricto**: hombres de 35 a 64
+  con intereses, todo obligatorio. **Libre**: Advantage+, Meta elige, con mínimo de 25 años y lo
+  demás como sugerencia. Compara qué cobra Meta, a quién elige, y qué hace esa gente en la
+  página, por grupo y por ubicación. Los enlaces llevan `utm_term={{adset.name}}` y
+  `ubicacion={{placement}}`.
 - `node scripts/meta-ads/estado.mjs pausar <id>` · `activar <id...>` · `presupuesto <id> <COP>`.
 
 ## Cosas de Meta que costó descubrir
@@ -53,6 +59,11 @@ Tipos de anuncio:
   llevaron el 28 % de las visitas de cuatro días, y el 41 % del gasto iba a mujeres, que casi no
   abrían el pago.
 - En la API, `age_max: 65` significa "65 o más".
+- El revisor de anuncios de Meta se hace pasar por un móvil normal: no lo delata el navegador
+  sino la red (IP de Meta). Al crear 6 anuncios llegaron 28 visitas en 85 s, con la página
+  oculta, muchas "de 30 segundos" sin mirar nada y 10 toques en Comprar. `src/lib/robots.ts` las
+  filtra. Al reutilizar una publicación (`object_story_id`) el carrusel conserva su post de
+  Instagram, pero los videos salen como posts nuevos en Instagram: no se pueden pedir los dos.
 - Con Advantage+ público la edad mínima obligatoria no puede pasar de 25: lo de más es solo
   sugerencia. La vista previa (`targetingsentencelines`) muestra "Edad mínima: 35" igual, pero al
   aplicarlo Meta lo rechaza. Para abrir el público sin perder límites, quita los intereses y deja

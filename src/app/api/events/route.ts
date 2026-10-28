@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendMetaEvent } from "@/lib/meta";
 import { notifyRescue, rescueCheck, sessionPurchased } from "@/lib/rescue";
+import { isRobot } from "@/lib/robots";
 import { insertPageEvent } from "@/lib/visits";
 
 const names = new Set([
@@ -21,10 +22,6 @@ const names = new Set([
 // Eventos cuyo texto corto (botón, respuesta del rescate) se guarda en la columna cta.
 const labeled = new Set(["cta_click", "rescue_answer", "whatsapp_click", "section_view"]);
 const notified = new Set(["rescue_answer", "whatsapp_click"]);
-
-// Revisores de anuncios de Meta y otros robots: abren la página (y hasta tocan Comprar)
-// pero no son personas.
-const robots = /meta-externalads|facebookexternalhit|facebot|bot\b|crawler|spider|HeadlessChrome/i;
 
 // Textos cortos que manda la página; se recortan por si alguien manda basura.
 function label(value: unknown): string | null {
@@ -65,7 +62,7 @@ export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const clientIp = forwarded || request.headers.get("x-real-ip") || undefined;
   const userAgent = request.headers.get("user-agent") || undefined;
-  if (userAgent && robots.test(userAgent)) {
+  if (isRobot(userAgent, clientIp)) {
     return NextResponse.json({ ok: true, skipped: true });
   }
 

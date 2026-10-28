@@ -73,6 +73,22 @@ describe("/api/events", () => {
     expect(backend.metaEvents).toHaveLength(0);
   });
 
+  it("ignora al revisor de Meta aunque se haga pasar por un móvil", async () => {
+    const disguised = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/156.0.0.0 Mobile Safari/537.36";
+    for (const ip of ["66.220.149.7", "31.13.127.89", "173.252.82.11", "2a03:2880:f0ff:c::face:b00c"]) {
+      await events(
+        new Request("https://curso.chocobachata.com/api/events", {
+          method: "POST",
+          body: JSON.stringify({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "barra" }),
+          headers: { "x-forwarded-for": ip, "user-agent": disguised },
+        }),
+      );
+    }
+
+    expect(backend.callsTo(`${SUPABASE}/rest/v1/page_events`)).toHaveLength(0);
+    expect(backend.metaEvents).toHaveLength(0);
+  });
+
   it("guarda IP y botón solo en el clic de Comprar, y el navegador siempre", async () => {
     await visit({ name: "cta_click", sessionId: "s", eventId: "e1", cta: "barra", source: "instagram", device: "movil" });
     await visit({ name: "scroll", sessionId: "s", depth: 50, cta: "barra", source: "instagram" });
