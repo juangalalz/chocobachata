@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { offer } from "@/lib/offer";
-import { deviceType, isInternal, sendVisit, visitContext } from "@/lib/visit-client";
+import { deviceType, isInternal, sendVisit, trackMeta, visitContext } from "@/lib/visit-client";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 const checkoutKey = "choco_pago";
@@ -94,8 +94,13 @@ export function CheckoutRescue() {
       }
 
       forgetCheckout();
-      const purchased = await reportReturn(Math.round((Date.now() - startedAt) / 1000));
-      if (purchased || alreadyShown) {
+      const seconds = Math.round((Date.now() - startedAt) / 1000);
+      const purchased = await reportReturn(seconds);
+      if (purchased) {
+        return;
+      }
+      trackMeta("VolvioDelPago", { segundos: seconds });
+      if (alreadyShown) {
         return;
       }
 

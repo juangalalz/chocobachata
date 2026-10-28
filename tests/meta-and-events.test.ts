@@ -89,6 +89,17 @@ describe("/api/events", () => {
     expect(backend.metaEvents[0].user_data).toMatchObject({ external_id: ["9f3a77b1"] });
   });
 
+  it("guarda grupo, ubicación, tiempo visible y si la página cargó oculta", async () => {
+    await visit({ name: "page_view", sessionId: "s", adGroup: "libre", placement: "Instagram_Reels", loadedHidden: true });
+    await visit({ name: "leave", sessionId: "s", seconds: 31, visibleSeconds: 0 });
+    await visit({ name: "section_view", sessionId: "s", cta: "testimonios" });
+
+    const inserts = backend.callsTo("page_events").map((call) => call.body as Record<string, unknown>);
+    expect(inserts[0]).toMatchObject({ ad_group: "libre", placement: "Instagram_Reels", loaded_hidden: true });
+    expect(inserts[1]).toMatchObject({ seconds: 31, visible_seconds: 0 });
+    expect(inserts[2]).toMatchObject({ name: "section_view", cta: "testimonios" });
+  });
+
   it("recorta los textos largos que manda la página", async () => {
     await visit({ name: "page_view", sessionId: "s", source: "x".repeat(200) });
 

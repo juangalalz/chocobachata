@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 
-import { markRead, sendVisit } from "@/lib/visit-client";
+import { markRead, sendVisit, trackMeta, trackMetaOnce } from "@/lib/visit-client";
 
 type DanceVideoProps = {
   src: string;
@@ -23,6 +23,10 @@ export function DanceVideo({ src, poster, label }: DanceVideoProps) {
       if (percent >= depth && !reached.current.has(depth)) {
         reached.current.add(depth);
         sendVisit("video_progress", { depth });
+        trackMeta("VideoAvance", { porcentaje: depth, video: label });
+        if (depth >= 50) {
+          trackMetaOnce("contenido", "ViewContent", { content_name: "Curso completo" }, true);
+        }
         if (depth === 100) {
           markRead();
         }
@@ -48,6 +52,7 @@ export function DanceVideo({ src, poster, label }: DanceVideoProps) {
           onClick={() => {
             setStarted(true);
             sendVisit("video_play");
+            trackMeta("VideoInicio", { video: label });
           }}
           aria-label={`Reproducir video: ${label}`}
           className="group absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold"

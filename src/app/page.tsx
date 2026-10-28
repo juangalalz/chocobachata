@@ -165,7 +165,7 @@ export default function HomePage() {
           </ul>
         </section>
 
-        <section className="border-t border-white/10">
+        <section data-seccion="niveles" className="border-t border-white/10">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
               Lo que aprenderás en cada nivel
@@ -194,7 +194,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-white/10">
+        <section data-seccion="profesor" className="border-t border-white/10">
           <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 py-14 sm:grid-cols-[16rem_minmax(0,1fr)] lg:gap-14">
             <div className="mx-auto w-full max-w-xs overflow-hidden rounded-2xl sm:mx-0 border border-white/10">
               <Image
@@ -228,7 +228,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-white/10">
+        <section data-seccion="testimonios" className="border-t border-white/10">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <p className="text-sm font-semibold tracking-[0.16em] text-gold uppercase">
               Opiniones de alumnos
@@ -295,7 +295,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-white/10">
+        <section data-seccion="pasos" className="border-t border-white/10">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Empezar es muy sencillo
@@ -316,7 +316,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-white/10">
+        <section data-seccion="preguntas" className="border-t border-white/10">
           <div className="mx-auto max-w-3xl px-5 py-14">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Preguntas frecuentes
@@ -352,7 +352,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="comprar" className="border-t border-white/10">
+        <section id="comprar" data-seccion="comprar" className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-14 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">

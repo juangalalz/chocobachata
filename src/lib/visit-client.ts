@@ -3,6 +3,7 @@
 const storageKey = "choco_session";
 export const visitorKey = "choco_visitor";
 const internalKey = "choco_interno";
+const visitsKey = "choco_visitas";
 
 export type VisitName =
   | "page_view"
@@ -14,7 +15,8 @@ export type VisitName =
   | "checkout_return"
   | "rescue_answer"
   | "rescue_close"
-  | "whatsapp_click";
+  | "whatsapp_click"
+  | "section_view";
 
 export type VisitContext = {
   sessionId: string;
@@ -23,6 +25,9 @@ export type VisitContext = {
   fbc: string;
   fbp: string;
   utmContent: string;
+  // Experimento de oct 2026: grupo del conjunto (utm_term) y ubicación ({{placement}}).
+  adGroup: string;
+  placement: string;
   source: string;
   device: string;
 };
@@ -132,6 +137,7 @@ export function visitContext(): VisitContext {
   if (!sessionId) {
     sessionId = crypto.randomUUID();
     sessionStorage.setItem(storageKey, sessionId);
+    countVisit();
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -145,9 +151,59 @@ export function visitContext(): VisitContext {
     fbc,
     fbp,
     utmContent: params.get("utm_content") ?? "",
+    adGroup: params.get("utm_term") ?? "",
+    placement: params.get("ubicacion") ?? "",
     source: trafficSource(params),
     device: deviceType(),
   };
+}
+
+function countVisit(): void {
+  try {
+    localStorage.setItem(visitsKey, String(visitNumber() + 1));
+  } catch {}
+}
+
+// Cuántas visitas lleva este navegador, contando la actual.
+export function visitNumber(): number {
+  try {
+    return Number(localStorage.getItem(visitsKey)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Eventos para el píxel: Meta ve qué hace la gente en la página (cuánto lee, cuánto video ve,
+// qué secciones ve) y con ellos se arman audiencias y conversiones personalizadas.
+export function trackMeta(
+  event: string,
+  params: Record<string, string | number> = {},
+  standard = false,
+): void {
+  if (isInternal()) {
+    return;
+  }
+  window.fbq?.(standard ? "track" : "trackCustom", event, params);
+}
+
+const onceKey = "choco_eventos";
+
+// El mismo evento una sola vez por visita (p. ej. ViewContent, o cada sección vista).
+export function trackMetaOnce(
+  key: string,
+  event: string,
+  params: Record<string, string | number> = {},
+  standard = false,
+): void {
+  try {
+    const seen = new Set((sessionStorage.getItem(onceKey) ?? "").split(",").filter(Boolean));
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    sessionStorage.setItem(onceKey, [...seen].join(","));
+  } catch {}
+  trackMeta(event, params, standard);
 }
 
 const readKey = "choco_leyo";
@@ -171,7 +227,14 @@ export function markRead(): void {
 
 export function sendVisit(
   name: VisitName,
-  extra: { depth?: number; seconds?: number; eventId?: string; cta?: string } = {},
+  extra: {
+    depth?: number;
+    seconds?: number;
+    eventId?: string;
+    cta?: string;
+    visibleSeconds?: number;
+    loadedHidden?: boolean;
+  } = {},
 ): void {
   if (isInternal()) {
     return;
@@ -185,6 +248,8 @@ export function sendVisit(
     seconds: extra.seconds,
     eventId: extra.eventId,
     cta: extra.cta,
+    visibleSeconds: extra.visibleSeconds,
+    loadedHidden: extra.loadedHidden,
     path: window.location.pathname,
     sourceUrl: window.location.href,
   };

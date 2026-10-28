@@ -12,6 +12,10 @@ export type PageEventRow = {
   fbc: string | null;
   fbp: string | null;
   utm_content: string | null;
+  ad_group: string | null;
+  placement: string | null;
+  visible_seconds: number | null;
+  loaded_hidden: boolean | null;
   event_id: string | null;
   client_ip: string | null;
   user_agent: string | null;

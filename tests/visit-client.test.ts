@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { isInternal, markRead, sendVisit, visitContext } from "@/lib/visit-client";
+import {
+  isInternal,
+  markRead,
+  sendVisit,
+  trackMeta,
+  trackMetaOnce,
+  visitContext,
+  visitNumber,
+} from "@/lib/visit-client";
 
 function open(url: string, userAgent: string, referrer = "") {
   window.history.replaceState({}, "", url);
@@ -38,6 +46,22 @@ describe("origen y dispositivo de la visita", () => {
 
     open("/", "Mozilla/5.0 (iPad; CPU OS 18_0)");
     expect(visitContext()).toMatchObject({ source: "directo", device: "tablet" });
+  });
+
+  it("lee el grupo y la ubicación que Meta pone en el enlace", () => {
+    open("/?utm_content=carrusel&utm_term=libre&ubicacion=Instagram_Reels", iphone);
+    expect(visitContext()).toMatchObject({ adGroup: "libre", placement: "Instagram_Reels" });
+  });
+
+  it("cuenta las visitas del navegador: una por sesión", () => {
+    open("/", iphone);
+    visitContext();
+    visitContext();
+    expect(visitNumber()).toBe(1);
+
+    sessionStorage.clear();
+    visitContext();
+    expect(visitNumber()).toBe(2);
   });
 
   it("mantiene la misma sesión en toda la visita", () => {
@@ -111,6 +135,37 @@ describe("envío de eventos", () => {
     expect(fbq).toHaveBeenCalledTimes(1);
     expect(fbq).toHaveBeenCalledWith("trackCustom", "LeyoPagina");
 
+    delete window.fbq;
+  });
+});
+
+describe("eventos del píxel", () => {
+  it("manda eventos personalizados y estándar, y los de una vez solo una vez por visita", () => {
+    const fbq = vi.fn();
+    window.fbq = fbq;
+    open("/", iphone);
+
+    trackMeta("Lectura", { porcentaje: 50 });
+    trackMetaOnce("contenido", "ViewContent", { content_name: "Curso completo" }, true);
+    trackMetaOnce("contenido", "ViewContent", { content_name: "Curso completo" }, true);
+
+    expect(fbq.mock.calls).toEqual([
+      ["trackCustom", "Lectura", { porcentaje: 50 }],
+      ["track", "ViewContent", { content_name: "Curso completo" }],
+    ]);
+    delete window.fbq;
+  });
+
+  it("no manda nada desde los dispositivos internos", () => {
+    const fbq = vi.fn();
+    window.fbq = fbq;
+    open("/?interno=1", iphone);
+
+    trackMeta("Lectura", { porcentaje: 50 });
+    expect(fbq).not.toHaveBeenCalled();
+
+    open("/?interno=0", iphone);
+    isInternal();
     delete window.fbq;
   });
 });

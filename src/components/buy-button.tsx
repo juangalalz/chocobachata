@@ -54,7 +54,7 @@ export function BuyButton({ children, cta, className }: BuyButtonProps) {
           window.fbq?.(
             "track",
             "InitiateCheckout",
-            {},
+            { boton: cta },
             { eventID: eventId },
           );
         }

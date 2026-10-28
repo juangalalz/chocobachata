@@ -15,10 +15,11 @@ const names = new Set([
   "rescue_answer",
   "rescue_close",
   "whatsapp_click",
+  "section_view",
 ]);
 
 // Eventos cuyo texto corto (botón, respuesta del rescate) se guarda en la columna cta.
-const labeled = new Set(["cta_click", "rescue_answer", "whatsapp_click"]);
+const labeled = new Set(["cta_click", "rescue_answer", "whatsapp_click", "section_view"]);
 const notified = new Set(["rescue_answer", "whatsapp_click"]);
 
 // Revisores de anuncios de Meta y otros robots: abren la página (y hasta tocan Comprar)
@@ -41,6 +42,10 @@ type EventBody = {
   fbc?: string;
   fbp?: string;
   utmContent?: string;
+  adGroup?: string;
+  placement?: string;
+  visibleSeconds?: number;
+  loadedHidden?: boolean;
   cta?: string;
   source?: string;
   device?: string;
@@ -80,6 +85,10 @@ export async function POST(request: Request) {
     fbc: body.fbc ?? null,
     fbp: body.fbp ?? null,
     utm_content: body.utmContent ?? null,
+    ad_group: label(body.adGroup),
+    placement: label(body.placement),
+    visible_seconds: typeof body.visibleSeconds === "number" ? body.visibleSeconds : null,
+    loaded_hidden: typeof body.loadedHidden === "boolean" ? body.loadedHidden : null,
     cta: labeled.has(name) ? label(body.cta) : null,
     source: label(body.source),
     device: label(body.device),
