@@ -10,11 +10,19 @@ type MetaInput = {
   userAgent?: string;
   fbc?: string;
   fbp?: string;
+  // Nuestro identificador fijo del navegador: une las visitas de la misma persona.
+  externalId?: string;
   email?: string;
   fullName?: string;
   value?: number;
   currency?: string;
 };
+
+// El identificador sin guiones son 32 caracteres hexadecimales: el píxel lo toma por ya
+// cifrado y lo envía tal cual, así que navegador y servidor mandan el mismo valor.
+export function metaExternalId(visitorId: string): string {
+  return visitorId.replace(/-/g, "").toLowerCase();
+}
 
 export type MetaStatus = "sent" | "skipped" | "failed";
 
@@ -42,6 +50,10 @@ export async function sendMetaEvent(input: MetaInput): Promise<MetaStatus> {
 
   if (input.fbp) {
     userData.fbp = input.fbp;
+  }
+
+  if (input.externalId) {
+    userData.external_id = [metaExternalId(input.externalId)];
   }
 
   const hash = (value: string) =>

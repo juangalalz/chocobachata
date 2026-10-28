@@ -39,7 +39,7 @@ describe("webhook de Lemon", () => {
 
   it("entrega la compra y recupera de Supabase los datos de Meta de la visita", async () => {
     backend.pageEvents.push(
-      { session_id: "s-9", name: "page_view", fbclid: "abc", fbc: "fb.1.1.abc", fbp: "fb.1.1.p", client_ip: null, user_agent: null },
+      { session_id: "s-9", visitor_id: "AB-12", name: "page_view", fbclid: "abc", fbc: "fb.1.1.abc", fbp: "fb.1.1.p", client_ip: null, user_agent: null },
       { session_id: "s-9", name: "cta_click", fbclid: null, fbc: null, fbp: null, client_ip: "9.9.9.9", user_agent: "iPhone" },
     );
 
@@ -54,6 +54,10 @@ describe("webhook de Lemon", () => {
       client_ip: "9.9.9.9",
       user_agent: "iPhone",
       wix_status: "access_sent",
+    });
+    // La compra lleva el mismo identificador que las visitas, para que Meta una a la persona.
+    expect(backend.metaEvents.find((event) => event.event_name === "Purchase")?.user_data).toMatchObject({
+      external_id: ["ab12"],
     });
     expect(backend.telegram).toHaveLength(0);
   });

@@ -25,6 +25,7 @@ export type SessionTracking = {
   fbclid?: string;
   fbc?: string;
   fbp?: string;
+  visitorId?: string;
   clientIp?: string;
   userAgent?: string;
 };
@@ -73,7 +74,7 @@ export async function findSessionTracking(
 ): Promise<SessionTracking> {
   const url = restUrl(
     `page_events?session_id=eq.${encodeURIComponent(sessionId)}` +
-      "&select=name,fbclid,fbc,fbp,client_ip,user_agent&order=created_at.desc&limit=50",
+      "&select=name,fbclid,fbc,fbp,visitor_id,client_ip,user_agent&order=created_at.desc&limit=50",
   );
 
   if (!url) {
@@ -89,16 +90,17 @@ export async function findSessionTracking(
 
   const rows = (await response.json()) as Pick<
     PageEventRow,
-    "name" | "fbclid" | "fbc" | "fbp" | "client_ip" | "user_agent"
+    "name" | "fbclid" | "fbc" | "fbp" | "visitor_id" | "client_ip" | "user_agent"
   >[];
   rows.sort((a, b) => Number(b.name === "cta_click") - Number(a.name === "cta_click"));
-  const pick = (field: "fbclid" | "fbc" | "fbp" | "client_ip" | "user_agent") =>
+  const pick = (field: "fbclid" | "fbc" | "fbp" | "visitor_id" | "client_ip" | "user_agent") =>
     rows.find((row) => row[field])?.[field] ?? undefined;
 
   return {
     fbclid: pick("fbclid"),
     fbc: pick("fbc"),
     fbp: pick("fbp"),
+    visitorId: pick("visitor_id"),
     clientIp: pick("client_ip"),
     userAgent: pick("user_agent"),
   };

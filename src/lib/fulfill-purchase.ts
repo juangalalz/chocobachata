@@ -20,6 +20,7 @@ export type PaidOrder = {
   fbclid?: string;
   fbc?: string;
   fbp?: string;
+  externalId?: string;
   clientIp?: string;
   userAgent?: string;
   sourceUrl?: string;
@@ -177,6 +178,7 @@ export async function fulfillPaidOrder(order: PaidOrder): Promise<string> {
       userAgent: order.userAgent,
       fbc: order.fbc,
       fbp: order.fbp,
+      externalId: order.externalId,
       value,
       currency,
     };

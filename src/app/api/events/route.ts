@@ -98,6 +98,7 @@ export async function POST(request: Request) {
       userAgent,
       fbc: body.fbc,
       fbp: body.fbp,
+      externalId: label(body.visitorId) ?? undefined,
     });
   }
 
@@ -110,6 +111,7 @@ export async function POST(request: Request) {
       userAgent,
       fbc: body.fbc,
       fbp: body.fbp,
+      externalId: label(body.visitorId) ?? undefined,
     });
   }
 

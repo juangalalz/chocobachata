@@ -2,6 +2,8 @@
 
 import Script from "next/script";
 
+import { visitorKey } from "@/lib/visit-client";
+
 const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export function MetaPixel() {
@@ -20,7 +22,16 @@ export function MetaPixel() {
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '${pixelId}');
+        // Mismo identificador que manda el servidor (lib/meta.ts): sin guiones parece ya
+        // cifrado y el píxel lo envía tal cual. Se crea aquí si es la primera visita.
+        (function () {
+          var id;
+          try {
+            id = localStorage.getItem('${visitorKey}');
+            if (!id) { id = crypto.randomUUID(); localStorage.setItem('${visitorKey}', id); }
+          } catch (e) {}
+          fbq('init', '${pixelId}', id ? { external_id: id.replace(/-/g, '').toLowerCase() } : {});
+        })();
       `}
     </Script>
   );

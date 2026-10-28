@@ -83,6 +83,12 @@ describe("/api/events", () => {
     expect(backend.metaEvents.map((event) => event.event_name)).toEqual(["InitiateCheckout"]);
   });
 
+  it("manda a Meta el identificador del visitante sin guiones, igual que el píxel", async () => {
+    await visit({ name: "page_view", sessionId: "s", eventId: "e1", visitorId: "9F3A-77B1" });
+
+    expect(backend.metaEvents[0].user_data).toMatchObject({ external_id: ["9f3a77b1"] });
+  });
+
   it("recorta los textos largos que manda la página", async () => {
     await visit({ name: "page_view", sessionId: "s", source: "x".repeat(200) });
 

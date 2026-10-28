@@ -1,7 +1,7 @@
 "use client";
 
 const storageKey = "choco_session";
-const visitorKey = "choco_visitor";
+export const visitorKey = "choco_visitor";
 const internalKey = "choco_interno";
 
 export type VisitName =

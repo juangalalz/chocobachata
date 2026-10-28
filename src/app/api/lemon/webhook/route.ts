@@ -102,6 +102,7 @@ export async function POST(request: Request) {
       fbclid: tracking.fbclid ?? custom.fbclid,
       fbc: tracking.fbc ?? custom.fbc,
       fbp: tracking.fbp ?? custom.fbp,
+      externalId: tracking.visitorId,
       clientIp: tracking.clientIp,
       userAgent: tracking.userAgent,
       sourceUrl: `${new URL(request.url).origin}/`,
