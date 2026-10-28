@@ -126,6 +126,16 @@ describe("/api/events", () => {
     expect(inserts[2]).toMatchObject({ name: "section_view", cta: "testimonios" });
   });
 
+  it("guarda la espera al pago y cuándo se vio una página precargada", async () => {
+    await visit({ name: "leave", sessionId: "s", seconds: 40, shownAfter: 12, checkoutWaitMs: 1834.6 });
+    await visit({ name: "leave", sessionId: "s", seconds: 900, checkoutWaitMs: 600000 });
+
+    const inserts = backend.callsTo("page_events").map((call) => call.body as Record<string, unknown>);
+    expect(inserts[0]).toMatchObject({ shown_after: 12, checkout_wait_ms: 1835 });
+    // Diez minutos no es esperar al pago: es alguien que dejó la pestaña abierta.
+    expect(inserts[1]).toMatchObject({ checkout_wait_ms: null });
+  });
+
   it("recorta los textos largos que manda la página", async () => {
     await visit({ name: "page_view", sessionId: "s", source: "x".repeat(200) });
 

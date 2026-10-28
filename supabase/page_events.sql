@@ -28,3 +28,9 @@ alter table public.page_events add column if not exists ad_group text;
 alter table public.page_events add column if not exists placement text;
 alter table public.page_events add column if not exists visible_seconds integer;
 alter table public.page_events add column if not exists loaded_hidden boolean;
+
+-- Espera al pago: milisegundos desde que toca Comprar hasta que el navegador deja la página
+-- (cuando empieza a llegar el pago de Lemon). Y si cargó oculta, cuántos segundos pasaron
+-- hasta que la persona la vio (precarga aprovechada) o null si nunca la vio.
+alter table public.page_events add column if not exists checkout_wait_ms integer;
+alter table public.page_events add column if not exists shown_after integer;

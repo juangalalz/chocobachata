@@ -17,6 +17,15 @@ export function rememberCheckout(): void {
   } catch {}
 }
 
+// Cuándo tocó Comprar en esta visita (ms), o null si no lo tocó.
+export function checkoutStartedAt(): number | null {
+  try {
+    return Number(sessionStorage.getItem(checkoutKey)) || null;
+  } catch {
+    return null;
+  }
+}
+
 export function forgetCheckout(): void {
   try {
     sessionStorage.removeItem(checkoutKey);

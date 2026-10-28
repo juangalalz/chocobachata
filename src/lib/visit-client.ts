@@ -234,6 +234,8 @@ export function sendVisit(
     cta?: string;
     visibleSeconds?: number;
     loadedHidden?: boolean;
+    shownAfter?: number;
+    checkoutWaitMs?: number;
   } = {},
 ): void {
   if (isInternal()) {
@@ -250,6 +252,8 @@ export function sendVisit(
     cta: extra.cta,
     visibleSeconds: extra.visibleSeconds,
     loadedHidden: extra.loadedHidden,
+    shownAfter: extra.shownAfter,
+    checkoutWaitMs: extra.checkoutWaitMs,
     path: window.location.pathname,
     sourceUrl: window.location.href,
   };

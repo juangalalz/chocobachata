@@ -43,6 +43,8 @@ type EventBody = {
   placement?: string;
   visibleSeconds?: number;
   loadedHidden?: boolean;
+  shownAfter?: number;
+  checkoutWaitMs?: number;
   cta?: string;
   source?: string;
   device?: string;
@@ -110,6 +112,12 @@ export async function POST(request: Request) {
     placement: label(body.placement),
     visible_seconds: visibleSeconds,
     loaded_hidden: loadedHidden,
+    shown_after: typeof body.shownAfter === "number" ? body.shownAfter : null,
+    // Más de 2 minutos no es espera: la persona dejó el pago abierto y se fue.
+    checkout_wait_ms:
+      typeof body.checkoutWaitMs === "number" && body.checkoutWaitMs <= 120000
+        ? Math.round(body.checkoutWaitMs)
+        : null,
     cta,
     source: label(body.source),
     device: label(body.device),

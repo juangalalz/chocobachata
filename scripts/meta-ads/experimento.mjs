@@ -19,7 +19,7 @@ const meta = createClient(env.META_ADS_TOKEN);
 const groups = { [state.adSet]: "Estricto", [adSetLibre]: "Libre" };
 const bogota = (time) => new Date(Date.parse(time) - 5 * 3600 * 1000).toISOString().slice(0, 10);
 const range = { since: bogota(inicio), until: bogota(new Date().toISOString()) };
-const cop = (value) => (value ? Math.round(value).toLocaleString("es-CO") : "–");
+const cop = (value) => (Number.isFinite(value) && value ? Math.round(value).toLocaleString("es-CO") : "–");
 const pct = (part, total) => (total ? `${Math.round((100 * part) / total)} %` : "–");
 const action = (row, type) => Number(row.actions?.find((a) => a.action_type === type)?.value ?? 0);
 const checkouts = (row) => action(row, "offsite_conversion.fb_pixel_initiate_checkout");
@@ -65,7 +65,7 @@ async function rows(query) {
 const robots = /meta-externalads|facebookexternalhit|facebot|bot\b|crawler|spider|HeadlessChrome/i;
 const events = (
   await rows(
-    `page_events?select=session_id,visitor_id,name,depth,seconds,visible_seconds,loaded_hidden,cta,ad_group,placement,user_agent,created_at&created_at=gte.${inicio}&order=created_at.asc`,
+    `page_events?select=session_id,visitor_id,name,depth,seconds,visible_seconds,loaded_hidden,shown_after,checkout_wait_ms,cta,ad_group,placement,user_agent,created_at&created_at=gte.${inicio}&order=created_at.asc`,
   )
 ).filter((event) => !robots.test(event.user_agent ?? ""));
 const orders = await rows(`orders?select=session_id,created_at&created_at=gte.${inicio}&refund_requested_at=is.null`);
@@ -75,19 +75,31 @@ const sessions = new Map();
 for (const event of events) {
   const session = sessions.get(event.session_id) ?? {
     group: null, placement: null, visitor: event.visitor_id, depth: 0, video: false, buy: false,
-    hidden: null, visible: null, sections: new Set(),
+    hidden: null, visible: null, shownAfter: null, wait: null, agent: event.user_agent ?? "", sections: new Set(),
   };
   session.group ||= event.ad_group;
   session.placement ||= event.placement;
   session.depth = Math.max(session.depth, event.depth ?? 0);
   if (event.name === "video_progress" && event.depth >= 50) session.video = true;
   if (event.name === "cta_click") session.buy = true;
-  if (event.name === "page_view") session.hidden = event.loaded_hidden;
-  if (event.name === "leave") session.visible = event.visible_seconds;
+  if (event.name === "page_view") {
+    session.hidden = event.loaded_hidden;
+    session.started = true;
+  }
+  if (event.name === "leave") {
+    session.visible = event.visible_seconds;
+    session.shownAfter ??= event.shown_after;
+    session.wait ??= event.checkout_wait_ms;
+  }
   if (event.name === "section_view") session.sections.add(event.cta);
   sessions.set(event.session_id, session);
 }
-const visits = [...sessions.entries()].filter(([, session]) => session.group).map(([id, session]) => ({ id, ...session }));
+// Meta a veces pone en utm_term el número del conjunto en vez del nombre: vale cualquiera de
+// los dos. Solo cuentan las visitas que empezaron dentro del experimento (con su page_view).
+const groupName = (value) => groups[value] ?? (["Estricto", "Libre"].includes(value) ? value : null);
+const visits = [...sessions.entries()]
+  .filter(([, session]) => session.started && groupName(session.group))
+  .map(([id, session]) => ({ id, ...session, group: groupName(session.group) }));
 const reads = (visit) => visit.depth >= 50 || visit.video;
 
 function funnel(list, spend) {
@@ -159,3 +171,24 @@ console.table(
     placements.map((key) => [key, funnel(visits.filter((visit) => `${visit.group} · ${visit.placement ?? "?"}` === key))]),
   ),
 );
+
+// 5. Precargas y espera al pago (desde el 28 oct 2026).
+const hidden = visits.filter((visit) => visit.hidden);
+console.log("4. Precargas: páginas que cargaron ocultas");
+console.log(
+  `   ${hidden.length} de ${visits.length} visitas. La persona la vio después: ${hidden.filter((visit) => visit.shownAfter != null).length}` +
+    ` · nunca la vio: ${hidden.filter((visit) => visit.shownAfter == null && visit.visible === 0).length}`,
+);
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+};
+const device = (agent) => (/iPhone|iPad/.test(agent) ? "iPhone" : /Android/.test(agent) ? "Android" : "otro");
+console.log("5. Espera al pago: de tocar Comprar a que empieza a llegar la página de Lemon");
+for (const name of ["iPhone", "Android", "otro"]) {
+  const waits = visits.filter((visit) => visit.wait != null && device(visit.agent) === name).map((visit) => visit.wait);
+  if (waits.length) {
+    console.log(`   ${name}: ${waits.length} toques · mediana ${(median(waits) / 1000).toFixed(1)} s · la más lenta ${(Math.max(...waits) / 1000).toFixed(1)} s`);
+  }
+}
+console.log("");

@@ -16,6 +16,8 @@ export type PageEventRow = {
   placement: string | null;
   visible_seconds: number | null;
   loaded_hidden: boolean | null;
+  shown_after: number | null;
+  checkout_wait_ms: number | null;
   event_id: string | null;
   client_ip: string | null;
   user_agent: string | null;

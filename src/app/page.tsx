@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { preconnect } from "react-dom";
 
 import { BuyButton } from "@/components/buy-button";
 import { DanceVideo } from "@/components/dance-video";
@@ -106,7 +107,22 @@ const faqs = [
 // La barra fija de móvil se esconde cuando cualquiera de estos botones está en pantalla.
 const hideBarWhen = ["oferta", "comprar-video", "comprar"];
 
+// El pago tarda en abrir (redirección de Lemon de ~0,8 s y ~640 KB entre HTML y scripts).
+// Dejamos abiertas de antemano las conexiones a sus servidores: ahorra DNS y TLS al tocar
+// Comprar. No se precarga la página de pago en sí: cada apertura crea un carrito en Lemon.
+const checkoutServers = [
+  new URL(offer.checkoutUrl).origin,
+  "https://assets.lemonsqueezy.com",
+  "https://js.stripe.com",
+];
+
 export default function HomePage() {
+  for (const server of checkoutServers) {
+    preconnect(server);
+    // Los scripts del pago se piden en modo CORS: esa conexión es aparte.
+    preconnect(server, { crossOrigin: "anonymous" });
+  }
+
   return (
     <>
       <VisitTracker />

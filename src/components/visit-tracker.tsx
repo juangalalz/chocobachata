@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { checkoutStartedAt } from "@/components/checkout-rescue";
 import {
   isInternal,
   markRead,
@@ -30,10 +31,13 @@ export function VisitTracker() {
     // Facebook la tenía abierta pero oculta. Solo cuenta el tiempo con la página a la vista.
     let visibleMs = 0;
     let visibleSince: number | null = document.visibilityState === "visible" ? started : null;
+    // Si cargó oculta (precarga), cuántos segundos después la vio la persona.
+    let shownAfter: number | null = null;
     const visibleSeconds = () =>
       Math.round((visibleMs + (visibleSince ? Date.now() - visibleSince : 0)) / 1000);
 
-    sendVisit("page_view", { eventId, loadedHidden: visibleSince === null });
+    const visibleSinceLoad = visibleSince !== null;
+    sendVisit("page_view", { eventId, loadedHidden: !visibleSinceLoad });
     if (!isInternal()) {
       window.fbq?.("track", "PageView", {}, { eventID: eventId });
     }
@@ -64,6 +68,7 @@ export function VisitTracker() {
     function onVisibility() {
       if (document.visibilityState === "visible") {
         visibleSince ??= Date.now();
+        shownAfter ??= Math.round((Date.now() - started) / 1000);
       } else if (visibleSince) {
         visibleMs += Date.now() - visibleSince;
         visibleSince = null;
@@ -101,9 +106,14 @@ export function VisitTracker() {
     document.querySelectorAll("[data-seccion]").forEach((section) => sections.observe(section));
 
     function onLeave() {
+      // Si tocó Comprar, el navegador deja la página cuando empieza a llegar el pago de Lemon:
+      // eso es lo que la persona espera viendo "Abriendo el pago…".
+      const checkout = checkoutStartedAt();
       sendVisit("leave", {
         seconds: Math.round((Date.now() - started) / 1000),
         visibleSeconds: visibleSeconds(),
+        shownAfter: visibleSinceLoad ? undefined : (shownAfter ?? undefined),
+        checkoutWaitMs: checkout && checkout >= started ? Date.now() - checkout : undefined,
         depth: Math.max(0, ...seen),
       });
     }
