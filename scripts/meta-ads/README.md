@@ -53,5 +53,9 @@ Tipos de anuncio:
   llevaron el 28 % de las visitas de cuatro días, y el 41 % del gasto iba a mujeres, que casi no
   abrían el pago.
 - En la API, `age_max: 65` significa "65 o más".
+- Con Advantage+ público la edad mínima obligatoria no puede pasar de 25: lo de más es solo
+  sugerencia. La vista previa (`targetingsentencelines`) muestra "Edad mínima: 35" igual, pero al
+  aplicarlo Meta lo rechaza. Para abrir el público sin perder límites, quita los intereses y deja
+  Advantage+ apagado: edad, género, móvil y exclusiones siguen siendo obligatorios.
 - Cada anuncio lleva `utm_content` propio: así el tablero (`/tablero`) sabe qué anuncio trajo
   cada visita y cada venta.
