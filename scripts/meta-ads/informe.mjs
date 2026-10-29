@@ -49,21 +49,32 @@ const funnel = Object.fromEntries(
 );
 
 const cop = (value) => `${Math.round(value).toLocaleString("es-CO")} COP`;
-const rows = insights.data.map((row) => {
+// Varios anuncios comparten utm_content (desde el experimento de oct 2026: el viejo, el del
+// Estricto y el del Libre). Las visitas solo se distinguen por utm_content, así que se suman
+// los anuncios de cada uno; el reparto por grupo está en experimento.mjs.
+const byUtm = new Map();
+for (const row of insights.data) {
   const utm = utmByAd[row.ad_id];
+  const entry = byUtm.get(utm) ?? { names: [], spend: 0, impressions: 0, clicks: 0 };
+  entry.names.push(row.ad_name);
+  entry.spend += Number(row.spend);
+  entry.impressions += Number(row.impressions);
+  entry.clicks += Number(row.inline_link_clicks ?? 0);
+  byUtm.set(utm, entry);
+}
+const rows = [...byUtm.entries()].map(([utm, entry]) => {
   const web = funnel[utm] ?? { visits: 0, clicked: 0, sales: 0 };
-  const spend = Number(row.spend);
   return {
-    anuncio: row.ad_name,
-    gasto: cop(spend),
-    impresiones: Number(row.impressions),
-    "clics enlace": Number(row.inline_link_clicks ?? 0),
-    CTR: `${Number(row.ctr ?? 0).toFixed(2)} %`,
-    "coste/clic": Number(row.inline_link_clicks ?? 0) ? cop(spend / row.inline_link_clicks) : "–",
+    anuncio: entry.names.length > 1 ? `${utm} (${entry.names.length} anuncios)` : entry.names[0],
+    gasto: cop(entry.spend),
+    impresiones: entry.impressions,
+    "clics enlace": entry.clicks,
+    CTR: entry.impressions ? `${((100 * entry.clicks) / entry.impressions).toFixed(2)} %` : "–",
+    "coste/clic": entry.clicks ? cop(entry.spend / entry.clicks) : "–",
     "visitas web": web.visits,
     "tocan Comprar": web.clicked,
     ventas: web.sales,
-    "coste/venta": web.sales ? cop(spend / web.sales) : "–",
+    "coste/venta": web.sales ? cop(entry.spend / web.sales) : "–",
   };
 });
 
